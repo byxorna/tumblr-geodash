@@ -19,18 +19,28 @@
 .base1 	{ fill: #93a1a1; }
 .base0 	{ fill: #839496; }
 body {
-  background: #002b36;
-}
-.background {
-  fill: #002b36;
+  background:  url('DarkNoiseBackground.png');
 }
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script>
-//var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
-var colorClasses = ['base02','base01','base00'];
+var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
+var colorClassesBase = ['base03','base02','base01'];
 
+function randomBaseColor(id) {
+  return _randomVal(id,colorClassesBase);
+};
+function randomColor(id) {
+  return _randomVal(id,colorClasses);
+};
+function _randomVal(id,arr){
+  if (id === null || id === undefined) {
+    return arr[Math.floor(Math.random()*arr.length)];
+  } else {
+    return arr[id.hashCode()%arr.length];
+  }
+};
 String.prototype.hashCode = function() {
   var hash = 0, i, chr, len;
   if (this.length == 0) return hash;
@@ -49,9 +59,11 @@ var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
 //set up the background
+/*
 svg.append('rect')
 	.attr('class','background')
 	.attr('x',0).attr('y',0).attr('width',width).attr('height',height);
+*/
 
 d3.json('geo.json', function(error, geo){
   if (error) return console.error(error);
@@ -64,7 +76,7 @@ d3.json('geo.json', function(error, geo){
   // this will draw a path for each country
   svg.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
 	.enter().append('path')
-	.attr('class',function(d){ return "subunit " + d.id + " " + colorClasses[Math.floor(Math.random()*colorClasses.length)]; })
+	.attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
 	.attr('d',path);
 });
 
