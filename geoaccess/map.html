@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<style>
+.yellow { fill: #b58900; }
+.orange { fill: #cb4b16; }
+.red { fill: #dc322f; }
+.magenta { fill: #d44682; }
+.violet { fill: #6c71c4; }
+.blue { fill: #268bd2; }
+.cyan { fill: #2aa198; }
+.green { fill: #859900; }
+.base03 { fill: #002b36; }
+.base02 { fill: #073642; }
+.base01 { fill: #586e75; }
+.base00 { fill: #657b83; }
+.base3 	{ fill: #fdf6e3; }
+.base2 	{ fill: #eee8d5; }
+.base1 	{ fill: #93a1a1; }
+.base0 	{ fill: #839496; }
+body {
+  background: #002b36;
+}
+.background {
+  fill: #002b36;
+}
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+//var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
+var colorClasses = ['base02','base01','base00'];
+
+String.prototype.hashCode = function() {
+  var hash = 0, i, chr, len;
+  if (this.length == 0) return hash;
+  for (i = 0, len = this.length; i < len; i++) {
+    chr   = this.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
+var width = 960,
+    height = 800;
+
+var svg = d3.select('body').append('svg')
+	.attr('width',width)
+	.attr('height',height);
+//set up the background
+svg.append('rect')
+	.attr('class','background')
+	.attr('x',0).attr('y',0).attr('width',width).attr('height',height);
+
+d3.json('geo.json', function(error, geo){
+  if (error) return console.error(error);
+  console.log(geo);
+  var subunits = topojson.feature(geo, geo.objects.subunits);
+  var projection = d3.geo.mercator().translate([width/2, height/2]);
+  var path = d3.geo.path().projection(projection);
+  //svg.append('path').datum(subunits).attr('d',path);
+  // pull out each subunit feature as a separate path
+  // this will draw a path for each country
+  svg.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
+	.enter().append('path')
+	.attr('class',function(d){ return "subunit " + d.id + " " + colorClasses[Math.floor(Math.random()*colorClasses.length)]; })
+	.attr('d',path);
+});
+
+
+
+
+</script>
