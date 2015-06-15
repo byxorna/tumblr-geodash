@@ -25,3 +25,7 @@ post-quantization: 4.003km (0.0360°) 1.931km (0.0174°)
 prune: retained 2002 / 2006 arcs (100%)
 
 ```
+
+## Run the thing
+
+`docker run -p 8080:80 -v $(pwd):/usr/share/nginx/html:ro -d nginx`
