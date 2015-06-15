@@ -43,8 +43,9 @@ var width = 960,
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
+var impacts = [];
 var map = svg.append('g').attr('class','map');
-var blipsgroup = svg.append('g').attr('class','blips');
+var blipsgroup = svg.append('g').attr('class','blips').selectAll('.blips');
 var projection = d3.geo.mercator().translate([width/2, height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
@@ -63,25 +64,43 @@ d3.json('geo.json', function(error, geo){
 	  .attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
 	  .attr('d',path);
 
+  function drawImpacts(){
+    // old elements
+    //blips.attr();
+    // new elements
+    blipsgroup.data(impacts).enter()
+      .insert('circle').attr('class','shockwave').attr('r',2)
+      .attr('transform', function(d){ return "translate("+projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])+")"; })
+      .transition().duration(1500).ease('cubic-in-out').attr('r',25).style('opacity',0).remove();
+    blipsgroup.data(impacts).enter()
+      .insert('circle')
+      .attr('class','blip').attr('r',5)
+      .attr('transform', function(d){ return "translate("+projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])+")"; })
+      .transition().duration(700).ease('cubic-in-out').attr('r',2).style('opacity',0).remove();
+    // update new and old elements
+    //blips.attr(..)
+    // finish up enter-update-exit pattern
+    blipsgroup.data(impacts).exit().remove();
+  }
+
+  drawImpacts();
+
+  //blow up a city every second
   setInterval(function(){
     // select a random place from places and blip it
     var city = places.features[Math.floor(places.features.length*Math.random())];
-    var blips = blipsgroup.selectAll('.blip').data([city]);
     console.log(city.properties.name);
-    //http://bl.ocks.org/mbostock/3808218
-    blips.enter()
-      .append('circle')
-      .attr('class','blip').attr('r',2)
-      .attr('transform', function(d){return "translate("+projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])+")";})
-      .transition().duration(700).ease('cubic-in-out').attr('r',15).style('opacity',0).remove();
-      //.attr('transform', function(d){return "translate("+projection([d.lon,d.lat])+")";})
+    impacts.push(city);
+    drawImpacts();
+    //remove the city from the list once its rendered
+    impacts.splice(impacts.indexOf(city),1);
   },1000);
 
 
 
 
-
 });
+
 
 
 
