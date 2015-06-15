@@ -45,7 +45,8 @@ var svg = d3.select('body').append('svg')
 	.attr('height',height);
 var impacts = [];
 var map = svg.append('g').attr('class','map');
-var blipsgroup = svg.append('g').attr('class','blips').selectAll('.blips');
+var topo = map.append('g').attr('class','topology');
+var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
 var projection = d3.geo.mercator().translate([width/2, height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
@@ -59,7 +60,7 @@ d3.json('geo.json', function(error, geo){
 
   // pull out each subunit feature as a separate path
   // this will draw a path for each country
-  map.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
+  topo.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
 	  .enter().append('path')
 	  .attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
 	  .attr('d',path);
