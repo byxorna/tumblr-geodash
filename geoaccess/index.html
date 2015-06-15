@@ -18,71 +18,12 @@
 .base2 	{ fill: #eee8d5; }
 .base1 	{ fill: #93a1a1; }
 .base0 	{ fill: #839496; }
+.blip   { fill: #fff; }
 body {
   background:  url('images/DarkNoiseBackground.png');
 }
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
-<script>
-var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
-var colorClassesBase = ['base03','base02','base01'];
+<script src="main.js"></script>
 
-function randomBaseColor(id) {
-  return _randomVal(id,colorClassesBase);
-};
-function randomColor(id) {
-  return _randomVal(id,colorClasses);
-};
-function _randomVal(id,arr){
-  if (id === null || id === undefined) {
-    return arr[Math.floor(Math.random()*arr.length)];
-  } else {
-    return arr[id.hashCode()%arr.length];
-  }
-};
-String.prototype.hashCode = function() {
-  var hash = 0, i, chr, len;
-  if (this.length == 0) return hash;
-  for (i = 0, len = this.length; i < len; i++) {
-    chr   = this.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
-};
-function changeviewport(){
-  // translates and scales the map in response to zoom/drag inputs
-  map.attr('transform','translate(' + d3.event.translate.join(',') + ') scale(' + d3.event.scale + ')');
-}
-
-var width = 960,
-    height = 800;
-
-var svg = d3.select('body').append('svg')
-	.attr('width',width)
-	.attr('height',height);
-var map = svg.append('g');
-
-d3.json('geo.json', function(error, geo){
-  if (error) return console.error(error);
-  console.log(geo);
-  var subunits = topojson.feature(geo, geo.objects.subunits);
-  var projection = d3.geo.mercator().translate([width/2, height/2]);
-  var path = d3.geo.path().projection(projection);
-  // set up zooming and panning
-  var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
-  svg.call(zoom); // bind zoom to the doc
-
-  // pull out each subunit feature as a separate path
-  // this will draw a path for each country
-  map.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
-	.enter().append('path')
-	.attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
-	.attr('d',path);
-});
-
-
-
-
-</script>
