@@ -51,6 +51,10 @@ String.prototype.hashCode = function() {
   }
   return hash;
 };
+function changeviewport(){
+  // translates and scales the map in response to zoom/drag inputs
+  map.attr('transform','translate(' + d3.event.translate.join(',') + ') scale(' + d3.event.scale + ')');
+}
 
 var width = 960,
     height = 800;
@@ -58,12 +62,7 @@ var width = 960,
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
-//set up the background
-/*
-svg.append('rect')
-	.attr('class','background')
-	.attr('x',0).attr('y',0).attr('width',width).attr('height',height);
-*/
+var map = svg.append('g');
 
 d3.json('geo.json', function(error, geo){
   if (error) return console.error(error);
@@ -71,10 +70,13 @@ d3.json('geo.json', function(error, geo){
   var subunits = topojson.feature(geo, geo.objects.subunits);
   var projection = d3.geo.mercator().translate([width/2, height/2]);
   var path = d3.geo.path().projection(projection);
-  //svg.append('path').datum(subunits).attr('d',path);
+  // set up zooming and panning
+  var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
+  svg.call(zoom); // bind zoom to the doc
+
   // pull out each subunit feature as a separate path
   // this will draw a path for each country
-  svg.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
+  map.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
 	.enter().append('path')
 	.attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
 	.attr('d',path);

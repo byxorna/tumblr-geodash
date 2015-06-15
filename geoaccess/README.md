@@ -12,7 +12,7 @@ Grab populated places from http://www.naturalearthdata.com/http//www.naturaleart
 ```
 wget http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_populated_places.zip
 unzip ne_50m_populated_places.zip
-gr2ogr -f GeoJSON -where 'SCALERANK < 8' places.json ne_50m_populated_places.shp
+ogr2ogr -f GeoJSON -where 'SCALERANK < 8' places.json ne_50m_populated_places.shp
 ```
 
 Merge the 2 geojson files into a topojson file:
@@ -28,4 +28,4 @@ prune: retained 2002 / 2006 arcs (100%)
 
 ## Run the thing
 
-`docker run -p 8080:80 -v $(pwd):/usr/share/nginx/html:ro -d nginx`
+`docker run --name nginx -p 8080:80 -v $(pwd):/usr/share/nginx/html:ro -d nginx`
