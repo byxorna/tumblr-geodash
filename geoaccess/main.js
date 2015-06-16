@@ -27,6 +27,8 @@ String.prototype.hashCode = function() {
 function changeviewport(){
   // translates and scales the map in response to zoom/drag inputs
   map.attr('transform','translate(' + d3.event.translate.join(',') + ') scale(' + d3.event.scale + ')');
+  //scale the hexmesh stroke width to keep it the same width at all zoom levels
+  map.select('.hexmesh').style('stroke-width', 1/d3.event.scale + "px");
 }
 
 // generates random points in geo coordinates
@@ -37,8 +39,8 @@ function randomLatLong(){
   };
 }
 
-var width = window.innerWidth,
-    height = window.innerHeight;
+var width = 960,
+    height = 800;
 
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
@@ -46,7 +48,47 @@ var svg = d3.select('body').append('svg')
 var impacts = [];
 var map = svg.append('g').attr('class','map');
 var topo = map.append('g').attr('class','topology');
+
+/* for hex binning */
+//features to be bucketed by hexbin(). list of features
+var hexfeatures = [];
+//binned hex data, generated when adding features into hexfeatures
+var hexpoints = [];
+var hexbin = d3.hexbin().size([width,height]).radius(9);
+var hexmap = map.append('g').attr('class','hexmap')
+  .selectAll('.hex')
+  .data(hexbin(hexpoints))
+  .enter()
+    .append('path')
+    .attr('class','hex')
+    .attr('d',hexbin.hexagon())
+    .attr('transform',function(d){return "translate("+d.x +","+d.y+")";})
+    .style('fill',function(d){
+      if (d.length > 1) {
+        //TODO fix me to use classes for color
+        // if there are more than 1 event in the bucket, color it red
+        return "#dc322f";
+      } else {
+        // 1 event means cyan
+        return "#268bd2";
+      }
+    }); //.transition().duration(1500).attr('opacity',0).remove();
+/*
+//not necessary
+svg.append('clipPath')
+    .attr('id','clip')
+  .append('rect')
+    .attr('class','mesh')
+    .attr('width',width)
+    .attr('height',height);
+// create clippath
+map.append('g').attr('clip-path','url(#clip)');
+*/
+
+/* end hex binning */
+
 var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
+
 var projection = d3.geo.mercator().translate([width/2, height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
@@ -87,28 +129,75 @@ d3.json('geo.json', function(error, geo){
     //blips.attr(..)
     // finish up enter-update-exit pattern
     blipsgroup.data(impacts).exit().remove();
+
+    hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
+    console.log("hexdata ",hexpoints);
+    hexmap = hexmap.data(hexpoints, function(e){
+        if (e == undefined){
+          return "fuck";
+        } else {
+          return e.i + "," + e.j;
+        }
+      });
+    hexmap.exit().remove();
+    hexmap.enter().append('path')
+        .attr('class','hex')
+        .attr('d',hexbin.hexagon())
+        .attr('transform',function(d){return "translate("+d.x +","+d.y+")";})
+    //update colors of all new+updated data
+    hexmap.style('fill',function(d){
+          if (d.length > 1) {
+            //TODO fix me to use classes for color
+            // if there are more than 1 event in the bucket, color it red
+            return "#dc322f";
+          } else {
+            // 1 event means cyan
+            return "#268bd2";
+          }
+        }); //.transition().duration(1500).attr('opacity',0);
+    //hexmap.data(hexdata).exit().remove();
+
   }
 
   updateMap();
 
   //blow up a city every second
   setInterval(function(){
-    if (mode === 'nukes'){
-      // select a random place from places and blip it
-      var city = places.features[Math.floor(places.features.length*Math.random())];
-      // figure out what country this is in
+    switch (mode){
+      case "nukes":
+      {
+        // select a random place from places and blip it
+        var city = places.features[Math.floor(places.features.length*Math.random())];
+        // figure out what country this is in
+        //TODO need to figure out what country this impact falls in
+        //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
+        //var intersection = findIntersection(subunits, coord[0],coord[1]);
+        //console.log(city.properties.name + " is in " + intersection.attr('data-country'));
 
-      //TODO need to figure out what country this impact falls in
-      //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
-      //var intersection = findIntersection(subunits, coord[0],coord[1]);
-      //console.log(city.properties.name + " is in " + intersection.attr('data-country'));
+        impacts.push(city);
+        updateMap();
+        //remove the city from the list once its rendered
+        impacts.splice(impacts.indexOf(city),1);
+      }; break;
+      case "hex":
+      {
+        //generate a random point on the map, add it into the unbucketed list hexfeatures
+        // then bin hexfeatures into hexdata
+        var p = places.features[Math.floor(places.features.length*Math.random())];
+        //TODO tag each feature with its intro time, and prune all that have expired
+        hexfeatures.push(p);
+        if (Math.random() < .2) {
+          //randomly remove 3 feature from the map
+          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
+          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
+          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
+        }
+        updateMap();
+        //hexfeatures.splice(hexfeatures.indexOf(p),1);
 
-      impacts.push(city);
-      updateMap();
-      //remove the city from the list once its rendered
-      impacts.splice(impacts.indexOf(city),1);
+      }; break;
     }
-  },100);
+  },1000);
 
 
 

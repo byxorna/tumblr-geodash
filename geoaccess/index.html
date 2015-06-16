@@ -22,6 +22,14 @@
     .base0 	{ fill: #839496; }
     .blip   { fill: #fff; }
     .shockwave   { fill: #dc322f; }
+    .hex {
+      stroke: #000;
+      stroke-width:1px;
+    }
+    .hexmesh {
+      fill:none;
+      stroke:#000;
+    }
     .action-toolbar {
       position:absolute;
       left:0;
@@ -38,9 +46,11 @@
   </head>
   <body>
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="http://underscorejs.org/underscore-min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://d3js.org/d3.hexbin.v0.js"></script>
     <script src="main.js"></script>
     <script src="ui.js"></script>
     <div class="btn-toolbar action-toolbar" role="toolbar">
@@ -50,6 +60,7 @@
       <div class="btn-group" role="group">
         <button type="button" class="btn btn-default" data-mode="live">Live Traffic</button>
         <button type="button" class="btn btn-default" data-mode="nukes">Nukes</button>
+        <button type="button" class="btn btn-default" data-mode="hex">Hex</button>
       </div>
     </div>
   </body>
