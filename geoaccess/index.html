@@ -1,31 +1,57 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<body>
-<style>
-.yellow { fill: #b58900; }
-.orange { fill: #cb4b16; }
-.red { fill: #dc322f; }
-.magenta { fill: #d44682; }
-.violet { fill: #6c71c4; }
-.blue { fill: #268bd2; }
-.cyan { fill: #2aa198; }
-.green { fill: #859900; }
-.base03 { fill: #002b36; }
-.base02 { fill: #073642; }
-.base01 { fill: #586e75; }
-.base00 { fill: #657b83; }
-.base3 	{ fill: #fdf6e3; }
-.base2 	{ fill: #eee8d5; }
-.base1 	{ fill: #93a1a1; }
-.base0 	{ fill: #839496; }
-.blip   { fill: #fff; }
-.shockwave   { fill: #dc322f; }
-body {
-  margin:0;
-  background:  url('images/DarkNoiseBackground.png');
-}
-</style>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/topojson.v1.min.js"></script>
-<script src="main.js"></script>
+<html lang="en">
+  <meta charset="utf-8">
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <style>
+    .yellow { fill: #b58900; }
+    .orange { fill: #cb4b16; }
+    .red { fill: #dc322f; }
+    .magenta { fill: #d44682; }
+    .violet { fill: #6c71c4; }
+    .blue { fill: #268bd2; }
+    .cyan { fill: #2aa198; }
+    .green { fill: #859900; }
+    .base03 { fill: #002b36; }
+    .base02 { fill: #073642; }
+    .base01 { fill: #586e75; }
+    .base00 { fill: #657b83; }
+    .base3 	{ fill: #fdf6e3; }
+    .base2 	{ fill: #eee8d5; }
+    .base1 	{ fill: #93a1a1; }
+    .base0 	{ fill: #839496; }
+    .blip   { fill: #fff; }
+    .shockwave   { fill: #dc322f; }
+    .action-toolbar {
+      position:absolute;
+      left:0;
+      top:0;
+      margin:10px;
+      opacity: .15;
+    }
+    body {
+      margin:0;
+      background-color:#000;
+      background:  url('images/DarkNoiseBackground.png');
+    }
+    </style>
+  </head>
+  <body>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="main.js"></script>
+    <script src="ui.js"></script>
+    <div class="btn-toolbar action-toolbar" role="toolbar">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default" data-mode="none">None</button>
+      </div>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default" data-mode="live">Live Traffic</button>
+        <button type="button" class="btn btn-default" data-mode="nukes">Nukes</button>
+      </div>
+    </div>
+  </body>
 
+</html>

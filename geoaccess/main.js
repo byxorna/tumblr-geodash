@@ -50,6 +50,7 @@ var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
 var projection = d3.geo.mercator().translate([width/2, height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
+var mode = 'none';
 d3.json('geo.json', function(error, geo){
   if (error) return console.error(error);
   console.log(geo);
@@ -69,7 +70,7 @@ d3.json('geo.json', function(error, geo){
       console.log('got click on ' + d.properties.name);
     });
 
-  function drawImpacts(){
+  function updateMap(){
     // old elements
     //blips.attr();
     // new elements
@@ -88,23 +89,25 @@ d3.json('geo.json', function(error, geo){
     blipsgroup.data(impacts).exit().remove();
   }
 
-  drawImpacts();
+  updateMap();
 
   //blow up a city every second
   setInterval(function(){
-    // select a random place from places and blip it
-    var city = places.features[Math.floor(places.features.length*Math.random())];
-    // figure out what country this is in
+    if (mode === 'nukes'){
+      // select a random place from places and blip it
+      var city = places.features[Math.floor(places.features.length*Math.random())];
+      // figure out what country this is in
 
-    //TODO need to figure out what country this impact falls in
-    //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
-    //var intersection = findIntersection(subunits, coord[0],coord[1]);
-    //console.log(city.properties.name + " is in " + intersection.attr('data-country'));
+      //TODO need to figure out what country this impact falls in
+      //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
+      //var intersection = findIntersection(subunits, coord[0],coord[1]);
+      //console.log(city.properties.name + " is in " + intersection.attr('data-country'));
 
-    impacts.push(city);
-    drawImpacts();
-    //remove the city from the list once its rendered
-    impacts.splice(impacts.indexOf(city),1);
+      impacts.push(city);
+      updateMap();
+      //remove the city from the list once its rendered
+      impacts.splice(impacts.indexOf(city),1);
+    }
   },100);
 
 
@@ -115,6 +118,7 @@ d3.json('geo.json', function(error, geo){
 
 function findIntersection(elements, x,y){
   //TODO this is mad broken
+  //TODO replace with hexbinning?
   var coarsematches = [];
   /*
     if you are inside the bounding box, you are a candidate.
