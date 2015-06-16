@@ -42,6 +42,10 @@ function randomLatLong(){
 var width = 960,
     height = 800;
 
+var color = d3.scale.linear()
+    .domain([0, 2])
+    .range(["#b58900","#d44682"])
+    .interpolate(d3.interpolateLab);
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
@@ -55,24 +59,7 @@ var hexfeatures = [];
 //binned hex data, generated when adding features into hexfeatures
 var hexpoints = [];
 var hexbin = d3.hexbin().size([width,height]).radius(9);
-var hexmap = map.append('g').attr('class','hexmap')
-  .selectAll('.hex')
-  .data(hexbin(hexpoints))
-  .enter()
-    .append('path')
-    .attr('class','hex')
-    .attr('d',hexbin.hexagon())
-    .attr('transform',function(d){return "translate("+d.x +","+d.y+")";})
-    .style('fill',function(d){
-      if (d.length > 1) {
-        //TODO fix me to use classes for color
-        // if there are more than 1 event in the bucket, color it red
-        return "#dc322f";
-      } else {
-        // 1 event means cyan
-        return "#268bd2";
-      }
-    }); //.transition().duration(1500).attr('opacity',0).remove();
+var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
 /*
 //not necessary
 svg.append('clipPath')
@@ -131,7 +118,7 @@ d3.json('geo.json', function(error, geo){
     blipsgroup.data(impacts).exit().remove();
 
     hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
-    console.log("hexdata ",hexpoints);
+    //console.log("hexdata ",hexpoints);
     hexmap = hexmap.data(hexpoints, function(e){
         if (e == undefined){
           return "fuck";
@@ -143,18 +130,14 @@ d3.json('geo.json', function(error, geo){
     hexmap.enter().append('path')
         .attr('class','hex')
         .attr('d',hexbin.hexagon())
-        .attr('transform',function(d){return "translate("+d.x +","+d.y+")";})
+        .style('opacity',0)
+        .style('fill',function(d){ return color(d.length);})
+        .attr('transform',function(d){return "translate("+d.x +","+d.y+")";});
     //update colors of all new+updated data
-    hexmap.style('fill',function(d){
-          if (d.length > 1) {
-            //TODO fix me to use classes for color
-            // if there are more than 1 event in the bucket, color it red
-            return "#dc322f";
-          } else {
-            // 1 event means cyan
-            return "#268bd2";
-          }
-        }); //.transition().duration(1500).attr('opacity',0);
+    hexmap.transition().duration(200)
+        .style('opacity',1)
+        .style('fill',function(d){ return color(d.length);});
+
     //hexmap.data(hexdata).exit().remove();
 
   }
@@ -188,9 +171,11 @@ d3.json('geo.json', function(error, geo){
         hexfeatures.push(p);
         if (Math.random() < .2) {
           //randomly remove 3 feature from the map
+          /*
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
+          */
         }
         updateMap();
         //hexfeatures.splice(hexfeatures.indexOf(p),1);
