@@ -126,7 +126,12 @@ d3.json('geo.json', function(error, geo){
           return e.i + "," + e.j;
         }
       });
-    hexmap.exit().remove();
+    // when hexes leave, "pop" them by scaling them up and make opaque
+    hexmap.exit()
+      .transition()
+      .attr('transform', function(d){ return "translate("+d.x+","+d.y+") scale(1.5)"; })
+      .style('opacity',0)
+      .remove();
     hexmap.enter().append('path')
         .attr('class','hex')
         .attr('d',hexbin.hexagon())
@@ -138,7 +143,6 @@ d3.json('geo.json', function(error, geo){
         .style('opacity',1)
         .style('fill',function(d){ return color(d.length);});
 
-    //hexmap.data(hexdata).exit().remove();
 
   }
 
@@ -171,11 +175,9 @@ d3.json('geo.json', function(error, geo){
         hexfeatures.push(p);
         if (Math.random() < .2) {
           //randomly remove 3 feature from the map
-          /*
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
-          */
         }
         updateMap();
         //hexfeatures.splice(hexfeatures.indexOf(p),1);
