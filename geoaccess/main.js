@@ -172,13 +172,19 @@ d3.json('geo.json', function(error, geo){
         // then bin hexfeatures into hexdata
         var p = places.features[Math.floor(places.features.length*Math.random())];
         //TODO tag each feature with its intro time, and prune all that have expired
+        var currentTime = Date.now();
+        p.properties.entry = currentTime;
         hexfeatures.push(p);
+        //prune features that have an entry older than acceptable
+        hexfeatures = _.reject(hexfeatures,function(e){ return e.properties.entry < (currentTime-60000); });
+        /*
         if (Math.random() < .2) {
           //randomly remove 3 feature from the map
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
           hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
         }
+        */
         updateMap();
         //hexfeatures.splice(hexfeatures.indexOf(p),1);
 
