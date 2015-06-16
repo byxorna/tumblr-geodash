@@ -4,9 +4,9 @@ $(function(){
     console.log("Setting mode to " + t.data('mode'));
     mode = t.data('mode');
   });
-  $('.action-toolbar').on('mouseover',function(e){
+  $('.action-toolbar').on('mouseenter',function(e){
     $(this).animate({opacity: 1});
   }).on('mouseleave',function(e){
-    $(this).animate({opacity: .15});
+    $(this).stop().delay(2000).animate({opacity: .15});
   });
 });
