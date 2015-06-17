@@ -39,8 +39,8 @@ function randomLatLong(){
   };
 }
 
-var width = 960,
-    height = 800;
+var width = window.innerWidth,
+    height = window.innerHeight;
 
 var color = d3.scale.linear()
     .domain([0, 2])
@@ -58,7 +58,7 @@ var topo = map.append('g').attr('class','topology');
 var hexfeatures = [];
 //binned hex data, generated when adding features into hexfeatures
 var hexpoints = [];
-var hexbin = d3.hexbin().size([width,height]).radius(4);
+var hexbin = d3.hexbin().size([width,height]).radius(2);
 var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
 /*
 //not necessary
@@ -80,9 +80,14 @@ var projection = d3.geo.mercator().translate([width/2,height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,15]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
 var mode = 'none';
+var geoLocation = null;
 
+function zoomCurrentLocation(geo){
+  svg.transition().duration(2000).call(zoomTo(geo, 6).event);
+}
 function zoomTo(geo, scale) {
   // this should be in [long, lat] NOT [lat,long]!!
+  // takes output of navigator.geolocation.getCurrentPosition(f(e){});
   var point = projection([geo.coords.longitude,geo.coords.latitude]);
   return zoom
       .translate([width / 2 - point[0] * scale, height / 2 - point[1] * scale])
@@ -114,9 +119,10 @@ d3.json('geo.json', function(error, geo){
     setStatus('Acquiring geo lock');
     navigator.geolocation.getCurrentPosition(function(e){
       setStatus('Fix acquired');
+      geoLocation = e;
       //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
       console.log('geo fix:',e);
-      svg.transition().duration(2000).call(zoomTo(e, 6).event);
+      zoomCurrentLocation(geoLocation);
       clearStatus();
     }, function(err){
       setStatus('Error getting geo lock','error');

@@ -14,10 +14,17 @@ function setStatus(m,c){
 
 
 $(function(){
-  $('.action-toolbar button').on('click',function(e){
+  $('.action-toolbar button.mode').on('click',function(e){
     var t = $(e.target);
     console.log("Setting mode to " + t.data('mode'));
     mode = t.data('mode');
+  });
+  $('.action-toolbar button.action').on('click',function(e){
+    if ($(e.target).data('action') == "home") {
+      setStatus('Home, James!');
+      zoomCurrentLocation(geoLocation);
+      clearStatus('1500');
+    }
   });
   $('.action-toolbar').on('mouseenter',function(e){
     $(this).animate({opacity: 1});
