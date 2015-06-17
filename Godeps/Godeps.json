@@ -1,0 +1,18 @@
+{
+	"ImportPath": "github.com/byxorna/radiator-porn",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/antage/eventsource",
+			"Rev": "803f4c5af2259daa9225c72732b23e1e65ee794e"
+		},
+		{
+			"ImportPath": "github.com/vmihailenco/bufio",
+			"Rev": "24e7e48f60fc2d9e99e43c07485d9fff42051e66"
+		},
+		{
+			"ImportPath": "github.com/vmihailenco/redis",
+			"Rev": "18da14f838c8108e54c572f4f0cc6f4ea8184311"
+		}
+	]
+}
