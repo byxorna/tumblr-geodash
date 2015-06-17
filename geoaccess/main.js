@@ -58,7 +58,7 @@ var topo = map.append('g').attr('class','topology');
 var hexfeatures = [];
 //binned hex data, generated when adding features into hexfeatures
 var hexpoints = [];
-var hexbin = d3.hexbin().size([width,height]).radius(9);
+var hexbin = d3.hexbin().size([width,height]).radius(4);
 var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
 /*
 //not necessary
@@ -190,7 +190,7 @@ d3.json('geo.json', function(error, geo){
 
       }; break;
     }
-  },1000);
+  },100);
 
 
 
