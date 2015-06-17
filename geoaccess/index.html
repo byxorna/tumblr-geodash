@@ -36,6 +36,21 @@
       margin:10px;
       opacity: .15;
     }
+    .info-toolbar {
+      position:absolute;
+      right:0;
+      top:0;
+      margin:10px;
+    }
+    span.error {
+      color:#dc322f;
+    }
+    span.warning {
+      color:#b58900;
+    }
+    span.ok {
+      color:#93a1a1;
+    }
     body {
       margin:0;
       background-color:#000;
@@ -50,8 +65,8 @@
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
     <script src="http://d3js.org/d3.hexbin.v0.js"></script>
-    <script src="main.js"></script>
     <script src="ui.js"></script>
+    <script src="main.js"></script>
     <div class="btn-toolbar action-toolbar" role="toolbar">
       <div class="btn-group" role="group">
         <button type="button" class="btn btn-default" data-mode="none">None</button>
@@ -61,6 +76,9 @@
         <button type="button" class="btn btn-default" data-mode="nukes">Nukes</button>
         <button type="button" class="btn btn-default" data-mode="hex">Hex</button>
       </div>
+    </div>
+    <div class="info-toolbar">
+      <span id="status"></span>
     </div>
   </body>
 

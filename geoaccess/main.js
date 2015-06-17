@@ -76,10 +76,20 @@ map.append('g').attr('clip-path','url(#clip)');
 
 var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
 
-var projection = d3.geo.mercator().translate([width/2, height/2]);
-var zoom = d3.behavior.zoom().scaleExtent([1,10]).on('zoom',changeviewport);
+var projection = d3.geo.mercator().translate([width/2,height/2]);
+var zoom = d3.behavior.zoom().scaleExtent([1,15]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
 var mode = 'none';
+
+function zoomTo(geo, scale) {
+  // this should be in [long, lat] NOT [lat,long]!!
+  var point = projection([geo.coords.longitude,geo.coords.latitude]);
+  return zoom
+      .translate([width / 2 - point[0] * scale, height / 2 - point[1] * scale])
+      .scale(scale);
+}
+
+
 d3.json('geo.json', function(error, geo){
   if (error) return console.error(error);
   console.log(geo);
@@ -98,6 +108,26 @@ d3.json('geo.json', function(error, geo){
     .on('click',function(d,i){
       console.log('got click on ' + d.properties.name);
     });
+
+  // lets try and get current position to center the map around
+  if (navigator.geolocation){
+    setStatus('Acquiring geo lock');
+    navigator.geolocation.getCurrentPosition(function(e){
+      setStatus('Fix acquired');
+      //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
+      console.log('geo fix:',e);
+      svg.transition().duration(2000).call(zoomTo(e, 6).event);
+      clearStatus();
+    }, function(err){
+      setStatus('Error getting geo lock','error');
+      clearStatus();
+    });
+  } else {
+    setStatus('Geo lock refused','warning');
+    clearStatus();
+  }
+
+
 
   function updateMap(){
     // old elements

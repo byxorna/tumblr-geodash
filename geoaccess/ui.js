@@ -1,3 +1,18 @@
+function clearStatus(t){
+  if (t == undefined || t == null){
+    t = 5000;
+  }
+  setTimeout(function(){ $('span#status').text('').removeClass(); },t);
+}
+function setStatus(m,c){
+  if (c == undefined || c == null){
+    c = 'ok';
+  }
+  console.log(m);
+  $('span#status').text(m).removeClass().addClass(c);
+}
+
+
 $(function(){
   $('.action-toolbar button').on('click',function(e){
     var t = $(e.target);
@@ -9,4 +24,6 @@ $(function(){
   }).on('mouseleave',function(e){
     $(this).stop().delay(2000).animate({opacity: .15});
   });
+
+
 });
