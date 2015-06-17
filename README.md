@@ -1,3 +1,14 @@
+## Run the thing
+
+```
+go build && ./radiator-porn
+```
+
+Open up localhost:8080
+
+
+## TopoJSON and OGR stuff
+
 install gdal
 Install `npm install topojson`
 
@@ -26,9 +37,4 @@ prune: retained 2002 / 2006 arcs (100%)
 
 ```
 
-## Run the thing
 
-```
-go build && ./radiator-porn
-```
-`docker run --name nginx -p 8080:80 -v $(pwd):/usr/share/nginx/html:ro -d nginx`
