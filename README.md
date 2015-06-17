@@ -1,7 +1,7 @@
 ## Run the thing
 
 ```
-go build && ./radiator-porn
+godep go build && ./radiator-porn
 ```
 
 Open up localhost:8080

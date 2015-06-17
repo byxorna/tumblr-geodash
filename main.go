@@ -41,8 +41,9 @@ func createSubscription(sh *subscriptionHandler, pubChan *string) {
 		Password: "",
 		DB:       0,
 	})
-	_, err := rclient.Ping().Result()
+	pong, err := rclient.Ping().Result()
 	haltOnErr(err)
+	log.Printf("Got pong from %s: %s", redisHost, pong)
 	pubsub := rclient.PubSub()
 
 	err = pubsub.Subscribe(*pubChan)
@@ -60,6 +61,7 @@ func createSubscription(sh *subscriptionHandler, pubChan *string) {
 			}
 			switch v.(type) {
 			case *redis.Message:
+				log.Printf("Message: %+v", v)
 				ch <- v.(*redis.Message)
 			case *redis.Subscription:
 				s := v.(*redis.Subscription)
@@ -96,14 +98,16 @@ func (sh *subscriptionHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 
 	if !ok {
 		createSubscription(sh, &pubChan)
-		defer func() {
-			log.Println("Closing pubsub and eventsource")
-			sh.index[pubChan].pubsub.Close()
-			sh.index[pubChan].es.Close()
-		}()
+		/*
+			      TODO: i need to close the connection to pubsub and eventsource
+			      but this defer execs when leaving this function
+						defer func() {
+							log.Printf("Closing pubsub and eventsource for %s", pubChan)
+							sh.index[pubChan].pubsub.Close()
+							sh.index[pubChan].es.Close()
+						}()
+		*/
 	}
-
-	log.Printf("subscribed to %s", pubChan)
 
 	go listen(sh.index[pubChan])
 
