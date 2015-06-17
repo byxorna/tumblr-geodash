@@ -7,6 +7,7 @@ import (
 	redis "gopkg.in/redis.v3"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -48,7 +49,7 @@ func createSubscription(sh *subscriptionHandler, pubChan *string) {
 
 	err = pubsub.Subscribe(*pubChan)
 	haltOnErr(err)
-	//TODO receive from this subscription and write into a channel
+	// receive from this subscription and write into a channel
 	//TODO: this channel is unbuffered. Will the timeout in the Receive() drop messages?
 	// i think thats ok
 	ch := make(chan *redis.Message)
@@ -61,7 +62,7 @@ func createSubscription(sh *subscriptionHandler, pubChan *string) {
 			}
 			switch v.(type) {
 			case *redis.Message:
-				log.Printf("Message: %+v", v)
+				//log.Printf("Message: %+v", v)
 				ch <- v.(*redis.Message)
 			case *redis.Subscription:
 				s := v.(*redis.Subscription)
@@ -87,13 +88,14 @@ func listen(index subscription) {
 	log.Printf("Listening for events on channel %s", index.pubChan)
 	for {
 		msg := <-index.ch
-		index.es.SendEventMessage(msg.Payload, "event1", "")
+		index.es.SendEventMessage(msg.Payload, index.pubChan, "")
 		log.Printf("message has been sent on %s (consumers: %d)", index.pubChan, index.es.ConsumersCount())
 	}
 }
 
 func (sh *subscriptionHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	pubChan := req.URL.Path[1:]
+	// transform /events/a/b to a.b as the event we subscribe to
+	pubChan := strings.Join(strings.Split(req.URL.Path[1:], "/")[1:], ".")
 	_, ok := sh.index[pubChan]
 
 	if !ok {

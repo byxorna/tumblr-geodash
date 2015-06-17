@@ -18,6 +18,16 @@ $(function(){
     var t = $(e.target);
     console.log("Setting mode to " + t.data('mode'));
     mode = t.data('mode');
+    // turn off anything that shouldn't be active
+    if (mode !== 'live'){
+      unsubscribe();
+    }
+    // turn on whatever should be active
+    switch(mode){
+      case "live":
+        subscribe();
+        break;
+    }
   });
   $('.action-toolbar button.action').on('click',function(e){
     if ($(e.target).data('action') == "home") {

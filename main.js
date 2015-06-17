@@ -153,8 +153,9 @@ d3.json('geo.json', function(error, geo){
     // finish up enter-update-exit pattern
     blipsgroup.data(impacts).exit().remove();
 
-    hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
-    //console.log("hexdata ",hexpoints);
+    //for use with random cities
+    //hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
+    hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.lon, x.lat]); } ));
     hexmap = hexmap.data(hexpoints, function(e){
         if (e == undefined){
           return "fuck";
@@ -202,6 +203,7 @@ d3.json('geo.json', function(error, geo){
         //remove the city from the list once its rendered
         impacts.splice(impacts.indexOf(city),1);
       }; break;
+      /*
       case "hex":
       {
         //generate a random point on the map, add it into the unbucketed list hexfeatures
@@ -211,22 +213,21 @@ d3.json('geo.json', function(error, geo){
         var currentTime = Date.now();
         p.properties.entry = currentTime;
         hexfeatures.push(p);
-        //prune features that have an entry older than acceptable
-        hexfeatures = _.reject(hexfeatures,function(e){ return e.properties.entry < (currentTime-60000); });
-        /*
-        if (Math.random() < .2) {
-          //randomly remove 3 feature from the map
-          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
-          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
-          hexfeatures.splice(Math.floor(Math.random()*hexfeatures.length),1);
-        }
-        */
+        //prune features that have an entry older than acceptable (js timestamp is milliseconds)
+        hexfeatures = _.reject(hexfeatures,function(e){ return e.ts*1000 < (currentTime-60000); });
         updateMap();
-        //hexfeatures.splice(hexfeatures.indexOf(p),1);
 
       }; break;
+      */
+      case "live":
+        // every loop should prune out expired events
+        var currentTime = Date.now();
+        //prune features that have an entry older than acceptable (js timestamp is milliseconds)
+        hexfeatures = _.reject(hexfeatures,function(e){ return e.ts*1000 < (currentTime-60000); });
+        updateMap();
+        break;
     }
-  },100);
+  },200);
 
 
 

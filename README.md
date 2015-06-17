@@ -1,10 +1,33 @@
+## WTF IS THIS
+
+Golang server that serves up a map of realtime events, broken out by geo. `/events/*` generates a stream a events that are published into redis (pubsub) and streamed into the client to render on the map.
+
+Theres also a client that will break apart haproxy logs and do geoip lookups on the IP, and publish the events into redis.
+
 ## Run the thing
 
+You need `godep` to build this.
+
 ```
-godep go build && ./radiator-porn
+./build.sh
+```
+
+Start up a redis instance (to support the pubsub mechanics)
+```
+docker run -d --name redis -p 6379:6379 redis
+```
+
+Run the webserver
+```
+./server/server -redis-host=192.168.59.103:6379 -listen=:8080
 ```
 
 Open up localhost:8080
+
+Run the agent to generate some geoevents
+```
+./agent/agent -redis-host=192.168.59.103:6379
+```
 
 
 ## TopoJSON and OGR stuff
