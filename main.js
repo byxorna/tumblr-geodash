@@ -77,7 +77,7 @@ var width = window.innerWidth,
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
-var impacts = [];
+var attacks = [];
 var map = svg.append('g').attr('class','map');
 var topo = map.append('g').attr('class','topology');
 
@@ -109,6 +109,7 @@ var zoom = d3.behavior.zoom().scaleExtent([1,15]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
 var mode = 'none';
 var geoLocation = null;
+var places;
 
 function zoomCurrentLocation(geo){
   svg.transition().duration(2000).call(zoomTo(geo, 6).event);
@@ -127,7 +128,7 @@ d3.json('geo.json', function(error, geo){
   if (error) return console.error(error);
   console.log(geo);
   //var subunits = topojson.feature(geo, geo.objects.subunits);
-  var places = topojson.feature(geo, geo.objects.places);
+  places = topojson.feature(geo, geo.objects.places);
   // set up zooming and panning
   svg.call(zoom); // bind zoom to the doc
 
@@ -163,24 +164,44 @@ d3.json('geo.json', function(error, geo){
 
 
 
-  function updateMap(){
-    // old elements
-    //blips.attr();
-    // new elements
-    blipsgroup.data(impacts).enter()
-      .insert('circle').attr('class','shockwave').attr('r',2)
-      .attr('transform', function(d){ return "translate("+projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])+")"; })
-      .transition().duration(1500).ease('cubic-in-out').attr('r',25).style('opacity',0).remove();
-    blipsgroup.data(impacts).enter()
-      .insert('circle')
-      .attr('class','blip').attr('r',5)
-      .attr('transform', function(d){ return "translate("+projection([d.geometry.coordinates[0],d.geometry.coordinates[1]])+")"; })
-      .transition().duration(700).ease('cubic-in-out').attr('r',2).style('opacity',0).remove();
-    // update new and old elements
-    //blips.attr(..)
-    // finish up enter-update-exit pattern
-    blipsgroup.data(impacts).exit().remove();
+  function renderNukes(){
+    // var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
+    //d3.select('#parent').selectAll('p').data(data).enter()
+    var blipsgroupenter = blipsgroup.data(attacks).enter().append('g');
+    var camPositionDelay = 3000;
+    blipsgroupenter.each(function(d){
+      setStatus(d.victim.properties.city + ', ' + d.victim.properties.country + 
+        " was nuked by " + d.agressor.properties.country,"error");
+      clearStatus(10000);
+      zoomCurrentLocation({
+        coords: {
+          longitude: d.victim.geometry.coordinates[0],
+          latitude: d.victim.geometry.coordinates[1],
+        }
+      });
+      setTimeout(function(){
+        blipsgroupenter.append('circle')
+          .attr('class','shockwave')
+          .attr('r',2)
+          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+          .transition()
+            .duration(1500).ease('cubic-in-out').attr('r',25).style('opacity',0).remove();
+        blipsgroupenter.append('circle')
+          .attr('r',5)
+          .attr('class','blip')
+          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+          .transition().duration(700).ease('cubic-in-out').attr('r',2).style('opacity',0).remove();
+        blipsgroupenter.append('circle')
+          .attr('r',2)
+          .attr('class','orange')
+          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+          .transition().duration(1000).ease('cubic-in-out').attr('r',10).style('opacity',0).remove();
+        blipsgroup.data(attacks).exit().remove();
+      },camPositionDelay);
 
+    });
+  }
+  function updateMap(){
     //for use with random cities
     //hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
     hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.lon, x.lat]); } ));
@@ -215,25 +236,30 @@ d3.json('geo.json', function(error, geo){
 
   setInterval(function(){
     //*** update data ***//
-    if (shootNukes) {
-      // select a random place from places and blip it
-      var city = places.features[Math.floor(places.features.length*Math.random())];
-      impacts.push(city);
-    }
-    // always prune expired events from hexfeatures
+   // always prune expired events from hexfeatures
     var currentTime = Date.now();
     hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-eventExpirationSeconds*1000); });
 
     //*** update the map ***//
     updateMap();
 
-    //*** cleanup data ***//
-    if (shootNukes) {
-      //remove the city from the list once its rendered
-      impacts.splice(impacts.indexOf(city),1);
-    }
-
   },200);
+  setInterval(function(){
+    if (shootNukes) {
+      // select a random place from places and blip it
+      var victimindex = Math.floor(places.features.length*Math.random());
+      var victimcity = places.features.splice(victimindex,1)[0];
+      var agressorcity = places.features[Math.floor(places.features.length*Math.random())];
+      var attack = {
+        victim: victimcity,
+        agressor: agressorcity,
+      };
+      attacks.push(attack);
+      renderNukes();
+      //remove the city from the list once its rendered
+      attacks.splice(attacks.indexOf(attack),1);
+    }
+  },5000);
 
 
 

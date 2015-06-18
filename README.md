@@ -61,7 +61,7 @@ ogr2ogr -f GeoJSON -where 'SCALERANK < 8' places.json ne_50m_populated_places.sh
 
 Merge the 2 geojson files into a topojson file:
 ```
--> $ node_modules/.bin/topojson -o geo.json --properties name=admin --id-property adm0_a3 -- subunits.json places.json 
+-> $ node_modules/.bin/topojson -o geo.json --properties name=admin -p city=NAME -p country=ADM0NAME --id-property adm0_a3 -- subunits.json places.json 
 bounds: -180 -90 180 83.59960937500006 (spherical)
 pre-quantization: 40.0m (0.000360°) 19.3m (0.000174°)
 topology: 2006 arcs, 80748 points

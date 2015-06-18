@@ -1,8 +1,12 @@
+var clearPending = false;
 function clearStatus(t){
   if (t == undefined || t == null){
     t = 5000;
   }
-  setTimeout(function(){ $('span#status').text('').removeClass(); },t);
+  if (!clearPending){
+    clearPending = true;
+    setTimeout(function(){ $('span#status').text('').removeClass(); clearPending = false; },t);
+  }
 }
 function setStatus(m,c){
   if (c == undefined || c == null){
