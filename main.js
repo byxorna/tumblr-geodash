@@ -222,8 +222,6 @@ d3.json('geo.json', function(error, geo){
         // figure out what country this is in
         //TODO need to figure out what country this impact falls in
         //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
-        //var intersection = findIntersection(subunits, coord[0],coord[1]);
-        //console.log(city.properties.name + " is in " + intersection.attr('data-country'));
 
         impacts.push(city);
         updateMap();
@@ -262,28 +260,4 @@ d3.json('geo.json', function(error, geo){
 
 });
 
-
-function findIntersection(elements, x,y){
-  //TODO this is mad broken
-  //TODO replace with hexbinning?
-  var coarsematches = [];
-  /*
-    if you are inside the bounding box, you are a candidate.
-    the country you are in is the one whose bounding box contains the point
-    as well as has the shortest distance to the centroid? I know this is fucked
-    but its as good as i can come up with to detect what country a point falls in
-  */
-  elements.each(function(d){
-    var box = path.bounds(this); //this.getBBox();
-    var center = path.centroid(this); //this.getBBox();
-    // height width x y
-      //console.log(box.x + " " + box.y + " .. " + x + ","+y);
-    console.log(box, center);
-    if (x >= box.x && x <= box.x+height && y >= box.y && y <= box.y+height) {
-      coarsematches.push(this);
-      console.log("coarsematch: " + this);
-    }
-  });
-
-}
 
