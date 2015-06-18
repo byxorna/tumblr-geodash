@@ -6,6 +6,8 @@ Theres also a client that will break apart haproxy logs and do geoip lookups on 
 
 ## Run the thing
 
+To build the agent, you will need `libgeoip` (https://github.com/maxmind/geoip-api-c). On OSX: `sudo port install libgeoip`. You will also need the `GeoIPCity.dat` database (pass to `-geoip-db`)
+
 You need `godep` to build this.
 
 ```
@@ -26,7 +28,7 @@ Open up localhost:8080
 
 Run the agent to generate some geoevents
 ```
-./agent/agent -redis-host=192.168.59.103:6379
+./agent/agent -geoip-db geoip/GeoIPCity.dat -redis-host=192.168.59.103:6379 -replay-log tmp/haproxy_16\:00-06172015.log
 ```
 
 
@@ -60,4 +62,10 @@ prune: retained 2002 / 2006 arcs (100%)
 
 ```
 
+
+## Generate Godeps
+
+```
+godep save ./agent ./server
+```
 

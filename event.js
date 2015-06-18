@@ -14,8 +14,11 @@ function subscribe(){
     console.log('eventsource error',e);
   };
   source.addEventListener('geo',function(e){
-    console.log('geo message',e);
-    hexfeatures.push(JSON.parse(e.data));
+    //console.log('geo message',e);
+    var m = JSON.parse(e.data);
+    // stamp each event with when we received it, so we can expire them
+    m.entrytime = Date.now();
+    hexfeatures.push(m);
   });
 }
 function unsubscribe(){

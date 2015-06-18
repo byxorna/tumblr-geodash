@@ -223,7 +223,8 @@ d3.json('geo.json', function(error, geo){
         // every loop should prune out expired events
         var currentTime = Date.now();
         //prune features that have an entry older than acceptable (js timestamp is milliseconds)
-        hexfeatures = _.reject(hexfeatures,function(e){ return e.ts*1000 < (currentTime-60000); });
+        // prune that which is 10s old
+        hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-10000); });
         updateMap();
         break;
     }
