@@ -5,7 +5,7 @@ var hexsize = 2,
     // what the upper bucket size for coloration (most red)
     maxbinsize = 8,
     // how many seconds before we expire any requests
-    eventExpirationSeconds = 60,
+    eventExpirationSeconds = 10,
     coldcolor = "green", //green
     hotcolor = "red";  //red
 // how to determine hexbin color with interpolation
