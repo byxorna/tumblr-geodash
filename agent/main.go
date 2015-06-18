@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
+	"github.com/ActiveState/tail"
 	"github.com/abh/geoip"
 	redis "gopkg.in/redis.v3"
 	"log"
@@ -18,6 +19,9 @@ var (
 	redisHost string
 	replayLog string
 	geoFile   string
+	random    bool
+	tailLog   string
+	ipField   int
 )
 
 type GeoMessage struct {
@@ -30,7 +34,10 @@ func init() {
 	flag.StringVar(&channel, "channel", "geo", "channel to spam geoevents into")
 	flag.StringVar(&redisHost, "redis-host", ":6379", "redis host:port to attach to and publish to")
 	flag.StringVar(&replayLog, "replay-log", "", "replay a haproxy log (simulate live events)")
+	flag.StringVar(&tailLog, "watch-log", "", "watch a logfile and follow around rotations")
 	flag.StringVar(&geoFile, "geoip-db", "/usr/share/GeoIP/GeoIPCity.dat", "use the MaxMind GeoIP database to perform lookups")
+	flag.IntVar(&ipField, "ip-field", 4, "field in logs that holds the remote IP")
+	flag.BoolVar(&random, "random", false, "just spam random geo data into redis")
 	flag.Parse()
 }
 
@@ -70,7 +77,7 @@ func main() {
 		for s.Scan() {
 			raw := s.Text()
 			fields := strings.Split(raw, " ")
-			remoteip := strings.Split(fields[4], ":")[0]
+			remoteip := strings.Split(fields[ipField], ":")[0]
 			ts := fields[0]
 			tlog, err := time.Parse(time.RFC3339, ts)
 			tLog_u := tlog.Unix()
@@ -102,8 +109,41 @@ func main() {
 				time.Sleep(time.Second)
 			}
 		}
+	}
 
-	} else {
+	if tailLog != "" {
+		//we should just watch tailLog
+		t, err := tail.TailFile(tailLog, tail.Config{
+			Location: &tail.SeekInfo{
+				Offset: 0,
+				Whence: 2,
+			},
+			ReOpen: true,
+			Follow: true,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		var record *geoip.GeoIPRecord
+		var geo GeoMessage
+		for line := range t.Lines {
+			fields := strings.Split(line.Text, " ")
+			remoteip := strings.Split(fields[ipField], ":")[0]
+			record = geodb.GetRecord(remoteip)
+			if record == nil {
+				log.Printf("FUCK! Couldnt lookup %s", remoteip)
+				continue
+			}
+			geo.Latitude = record.Latitude
+			geo.Longitude = record.Longitude
+			j, err := json.Marshal(geo)
+			if err != nil {
+				log.Printf("%s", err)
+			}
+			rclient.Publish(channel, string(j[:]))
+		}
+	}
+	if random {
 		for {
 			geo := randomGeo()
 			j, err := json.Marshal(geo)
