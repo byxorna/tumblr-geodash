@@ -9,6 +9,7 @@ var hexsize = 2,
     coldcolor = "green", //green
     hotcolor = "red";  //red
 // how to determine hexbin color with interpolation
+var shootNukes = false;
 var color = function(i){
   var domain = [1,3,5,10];
   // green, yellow, orange, red, magenta
@@ -212,47 +213,26 @@ d3.json('geo.json', function(error, geo){
 
   updateMap();
 
-  //blow up a city every second
   setInterval(function(){
-    switch (mode){
-      case "nukes":
-      {
-        // select a random place from places and blip it
-        var city = places.features[Math.floor(places.features.length*Math.random())];
-        // figure out what country this is in
-        //TODO need to figure out what country this impact falls in
-        //var coord = projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]);
-
-        impacts.push(city);
-        updateMap();
-        //remove the city from the list once its rendered
-        impacts.splice(impacts.indexOf(city),1);
-      }; break;
-      /*
-      case "hex":
-      {
-        //generate a random point on the map, add it into the unbucketed list hexfeatures
-        // then bin hexfeatures into hexdata
-        var p = places.features[Math.floor(places.features.length*Math.random())];
-        //TODO tag each feature with its intro time, and prune all that have expired
-        var currentTime = Date.now();
-        p.properties.entry = currentTime;
-        hexfeatures.push(p);
-        //prune features that have an entry older than acceptable (js timestamp is milliseconds)
-        hexfeatures = _.reject(hexfeatures,function(e){ return e.ts*1000 < (currentTime-60000); });
-        updateMap();
-
-      }; break;
-      */
-      case "live":
-        // every loop should prune out expired events
-        var currentTime = Date.now();
-        //prune features that have an entry older than acceptable (js timestamp is milliseconds)
-        // prune that which is 10s old
-        hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-eventExpirationSeconds*1000); });
-        updateMap();
-        break;
+    //*** update data ***//
+    if (shootNukes) {
+      // select a random place from places and blip it
+      var city = places.features[Math.floor(places.features.length*Math.random())];
+      impacts.push(city);
     }
+    // always prune expired events from hexfeatures
+    var currentTime = Date.now();
+    hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-eventExpirationSeconds*1000); });
+
+    //*** update the map ***//
+    updateMap();
+
+    //*** cleanup data ***//
+    if (shootNukes) {
+      //remove the city from the list once its rendered
+      impacts.splice(impacts.indexOf(city),1);
+    }
+
   },200);
 
 

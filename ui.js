@@ -20,7 +20,9 @@ $(function(){
     mode = t.data('mode');
     // turn off anything that shouldn't be active
     if (mode !== 'live'){
+      setStatus("Unsubscribing");
       unsubscribe();
+      clearStatus();
     }
     // turn on whatever should be active
     switch(mode){
@@ -30,10 +32,21 @@ $(function(){
     }
   });
   $('.action-toolbar button.action').on('click',function(e){
-    if ($(e.target).data('action') == "home") {
-      setStatus('Home, James!');
-      zoomCurrentLocation(geoLocation);
-      clearStatus('1500');
+    switch($(e.target).data('action')) {
+      case "home":
+        setStatus('Home, James!');
+        zoomCurrentLocation(geoLocation);
+        clearStatus('1500');
+        break;
+      case "nukes":
+        console.log($(e.target).data('action'));
+        shootNukes = !shootNukes
+        if (shootNukes){
+          setStatus("Shall we play a game?","error");
+        } else {
+          setStatus("Wouldn't you prefer a nice game of chess?");
+          clearStatus();
+        }
     }
   });
   $('.action-toolbar').on('mouseenter',function(e){

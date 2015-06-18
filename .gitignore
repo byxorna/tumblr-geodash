@@ -3,4 +3,5 @@ node_modules/
 radiator-porn
 server/server
 agent/agent
+firehose-agent/firehose-agent
 tmp/

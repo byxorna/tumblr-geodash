@@ -26,9 +26,17 @@ Run the webserver
 
 Open up localhost:8080
 
-Run the agent to generate some geoevents
+### Run the firehose agent
+
 ```
-./agent/agent -geoip-db geoip/GeoIPCity.dat -redis-host=192.168.59.103:6379 -replay-log tmp/haproxy_16\:00-06172015.log
+./firehose-agent/firehose-agent -username gabe -password pwd -host service-firehose.tumblr.net:8080 -stream radiator -redis-host=192.168.59.103:6379 -channel firehose
+```
+
+### Run the ghetto log tailing agent
+
+Run the agent to generate some geoevents from haproxy logs
+```
+./agent/agent -geoip-db geoip/GeoIPCity.dat -redis-host=192.168.59.103:6379 -replay-log tmp/haproxy_16\:00-06172015.log -field 4
 ```
 
 
@@ -68,4 +76,9 @@ prune: retained 2002 / 2006 arcs (100%)
 ```
 godep save ./agent ./server
 ```
+
+## TODO
+
+* Need to test throughput of redis pubsub
+* How fast is the geoip lookup? Should it be in a goroutine?
 
