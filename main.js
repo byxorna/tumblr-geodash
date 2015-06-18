@@ -1,5 +1,36 @@
 var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
 var colorClassesBase = ['base03','base02','base01'];
+    // how large the hexagon bins are
+var hexsize = 2,
+    // what the upper bucket size for coloration (most red)
+    maxbinsize = 8,
+    // how many seconds before we expire any requests
+    eventExpirationSeconds = 60,
+    coldcolor = "green", //green
+    hotcolor = "red";  //red
+// how to determine hexbin color with interpolation
+var color = function(i){
+  var domain = [1,3,5,10];
+  // green, yellow, orange, red, magenta
+  var colors = ["#859900","#b58900","#cb4b16","#dc322f","#d33682"]
+  for(var x = 0 ; x < domain.length ; x++){
+    if (i <= domain[x])
+      return colors[x];
+  }
+};
+/*
+var color = d3.scale.linear()
+    .map(d3.interpolate(0,10))
+    .range(["#2aa198","#2aa198","#6c71c4","#d44682","#dc322f"])
+    .clamp(true);
+    //.interpolate(d3.interpolateLab);
+    */
+
+/*
+var color = d3.scale.ordinal()
+    .domain(d3.range(0, maxbinsize))
+    .range(colorbrewer.PuBu[8].reverse());
+    */
 
 function randomBaseColor(id) {
   return _randomVal(id,colorClassesBase);
@@ -42,10 +73,6 @@ function randomLatLong(){
 var width = window.innerWidth,
     height = window.innerHeight;
 
-var color = d3.scale.linear()
-    .domain([0, 2])
-    .range(["#b58900","#d44682"])
-    .interpolate(d3.interpolateLab);
 var svg = d3.select('body').append('svg')
 	.attr('width',width)
 	.attr('height',height);
@@ -58,7 +85,7 @@ var topo = map.append('g').attr('class','topology');
 var hexfeatures = [];
 //binned hex data, generated when adding features into hexfeatures
 var hexpoints = [];
-var hexbin = d3.hexbin().size([width,height]).radius(2);
+var hexbin = d3.hexbin().size([width,height]).radius(hexsize);
 var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
 /*
 //not necessary
@@ -224,7 +251,7 @@ d3.json('geo.json', function(error, geo){
         var currentTime = Date.now();
         //prune features that have an entry older than acceptable (js timestamp is milliseconds)
         // prune that which is 10s old
-        hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-10000); });
+        hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-eventExpirationSeconds*1000); });
         updateMap();
         break;
     }
