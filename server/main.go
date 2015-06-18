@@ -89,7 +89,7 @@ func listen(index subscription) {
 	for {
 		msg := <-index.ch
 		index.es.SendEventMessage(msg.Payload, index.pubChan, "")
-		log.Printf("message has been sent on %s (consumers: %d)", index.pubChan, index.es.ConsumersCount())
+		//log.Printf("message has been sent on %s (consumers: %d)", index.pubChan, index.es.ConsumersCount())
 	}
 }
 
