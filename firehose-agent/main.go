@@ -20,11 +20,13 @@ var (
 	pass      string
 	redisHost string
 	channel   string
+	debug     bool
 )
 
 type FirehoseMessage struct {
 	Id           string       `json:"id"`
 	ActivityType string       `json:"activity_type"`
+	Timestamp    int64        `json:"timestamp"`
 	Geo          FirehoseGeo  `json:"geo,omit-empty"`
 	Post         FirehosePost `json:"post,omit-empty"`
 }
@@ -48,6 +50,26 @@ type EventMessage struct {
 	Latitude     float32 `json:"lat"`
 }
 
+func updatePosition(ts int64, client http.Client) (*http.Response, error) {
+	if debug {
+		log.Printf("Updating position to %d", ts)
+	}
+	checkpointurl := fmt.Sprintf("http://%s/2.2/firehose/%s/position?timestamp=%d", host, streamid, ts)
+	req, err := http.NewRequest("PUT", checkpointurl, nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	req.SetBasicAuth(user, pass)
+	if err != nil {
+		log.Printf("Unable to create request to update position to %d: %s", ts, err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Unable to update position to %d: %s", ts, err)
+		return nil, err
+	}
+	log.Printf("Updated position to %d: %s", ts, resp.Status)
+	return resp, nil
+}
+
 func init() {
 	flag.StringVar(&host, "host", "", "Firehose endpoint (i.e. host:8080)")
 	flag.StringVar(&streamid, "stream", "radiator", "Firehose stream ID (unique client id)")
@@ -55,6 +77,7 @@ func init() {
 	flag.StringVar(&pass, "password", "", "Firehose stream password")
 	flag.StringVar(&redisHost, "redis-host", ":6379", "redis host:port to attach to and publish to")
 	flag.StringVar(&channel, "channel", "firehose", "channel to publish events into")
+	flag.BoolVar(&debug, "debug", false, "print debugs")
 	flag.Parse()
 }
 
@@ -69,13 +92,34 @@ func main() {
 	defer rclient.Close()
 
 	url := fmt.Sprintf("http://%s/2.2/firehose/%s/stream", host, streamid)
+	client := &http.Client{}
+
+	log.Printf("Skipping forward in the firehose to right now")
+	updatePosition(time.Now().Unix(), *client)
+
 	for {
 		//get our http connection ready
 		log.Printf("Attempting connection to %s", url)
 		req, err := http.NewRequest("GET", url, nil)
 		req.Header.Set("Accept-Encoding", "gzip")
 		req.SetBasicAuth(user, pass)
-		client := &http.Client{}
+
+		tschan := make(chan int64)
+		go func() {
+			i := 0
+			checkinThreshold := 100
+			for {
+				ts := <-tschan
+				i = i + 1
+				if i >= checkinThreshold {
+					// every checkinThreshold messages lets update position in the firehose
+					updatePosition(ts, *client)
+					i = 0
+				}
+
+			}
+		}()
+
 		resp, err := client.Do(req)
 		gz, err := gzip.NewReader(resp.Body)
 		if err != nil {
@@ -129,7 +173,10 @@ func main() {
 					log.Printf("%s", err)
 				}
 				rclient.Publish(channel, string(j[:]))
-				//log.Printf("PUBLISH %s %s", channel, w)
+				tschan <- m.Timestamp
+				if debug {
+					log.Printf("PUBLISH %s %s", channel, w)
+				}
 
 			}
 		}
