@@ -59,5 +59,8 @@ $(function(){
     $(this).stop().delay(2000).animate({opacity: .15});
   });
 
+  // lets just subscribe by default after a few seconds
+  setTimeout(subscribe, 2000);
+
 
 });
