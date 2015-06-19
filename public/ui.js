@@ -42,11 +42,20 @@ $(function(){
         zoomCurrentLocation(geoLocation);
         clearStatus('1500');
         break;
+      case "jumpcities":
+        setStatus("Turning " + ((zoomcities) ? "off" : "on") + " jumping");
+        zoomcities = !zoomcities;
+        if (zoomcities) {
+          shootNukes = false;
+        }
+        clearStatus();
+        break;
       case "nukes":
         console.log($(e.target).data('action'));
         shootNukes = !shootNukes
         if (shootNukes){
           setStatus("Shall we play a game?","error");
+          zoomcities = false;
         } else {
           setStatus("Wouldn't you prefer a nice game of chess?");
           clearStatus();
@@ -59,8 +68,25 @@ $(function(){
     $(this).stop().delay(2000).animate({opacity: .15});
   });
 
-  // lets just subscribe by default after a few seconds
-  setTimeout(subscribe, 2000);
-
+  // lets try and get current position to center the map around
+  /*
+  if (navigator.geolocation){
+    setStatus('Acquiring geo lock');
+    navigator.geolocation.getCurrentPosition(function(e){
+      setStatus('Fix acquired');
+      geoLocation = e;
+      //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
+      console.log('geo fix:',e);
+      zoomCurrentLocation(geoLocation);
+      clearStatus();
+    }, function(err){
+      setStatus('Error getting geo lock','error');
+      clearStatus();
+    });
+  } else {
+    setStatus('Geo lock refused','warning');
+    clearStatus();
+  }
+  */
 
 });

@@ -10,6 +10,7 @@ var hexsize = 2,
     hotcolor = "red";  //red
 // how to determine hexbin color with interpolation
 var shootNukes = false;
+var zoomcities = true;
 var color = function(i){
   var domain = [1,3,5,10];
   // green, yellow, orange, red, magenta
@@ -142,47 +143,20 @@ function zoomTo(geo, scale) {
   }
 }
 
-
-d3.json('geo.json', function(error, geo){
-  if (error) return console.error(error);
-  console.log(geo);
-  //var subunits = topojson.feature(geo, geo.objects.subunits);
-  places = topojson.feature(geo, geo.objects.places);
-  // set up zooming and panning
-  svg.call(zoom); // bind zoom to the doc
-
-  // pull out each subunit feature as a separate path
-  // this will draw a path for each country
-  var subunits = topo.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
-	  .enter().append('path')
-	  .attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
-    .attr('data-country',function(d){ return d.id; })
-	  .attr('d',path)
-    .on('click',function(d,i){
-      console.log('got click on ' + d.properties.name);
-    });
-
-  // lets try and get current position to center the map around
-  if (navigator.geolocation){
-    setStatus('Acquiring geo lock');
-    navigator.geolocation.getCurrentPosition(function(e){
-      setStatus('Fix acquired');
-      geoLocation = e;
-      //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
-      console.log('geo fix:',e);
-      zoomCurrentLocation(geoLocation);
-      clearStatus();
-    }, function(err){
-      setStatus('Error getting geo lock','error');
-      clearStatus();
-    });
-  } else {
-    setStatus('Geo lock refused','warning');
-    clearStatus();
+function zoomRandomCity(timeout){
+  if (timeout == undefined || timeout == null){
+    timeout = 2000;
   }
-
-
-
+  var city = places.features[Math.floor(places.features.length*Math.random())];
+  setStatus(city.properties.city + ", " + city.properties.country);
+  clearStatus(timeout);
+  zoomCurrentLocation({
+    coords: {
+      longitude: city.geometry.coordinates[0],
+      latitude: city.geometry.coordinates[1],
+    }
+  });
+}
   function renderNukes(){
     // var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
     //d3.select('#parent').selectAll('p').data(data).enter()
@@ -220,6 +194,27 @@ d3.json('geo.json', function(error, geo){
 
     });
   }
+
+
+d3.json('geo.json', function(error, geo){
+  if (error) return console.error(error);
+  console.log(geo);
+  //var subunits = topojson.feature(geo, geo.objects.subunits);
+  places = topojson.feature(geo, geo.objects.places);
+  // set up zooming and panning
+  svg.call(zoom); // bind zoom to the doc
+
+  // pull out each subunit feature as a separate path
+  // this will draw a path for each country
+  var subunits = topo.selectAll('.subunit').data(topojson.feature(geo, geo.objects.subunits).features)
+	  .enter().append('path')
+	  .attr('class',function(d){ return "subunit " + d.id + " " + randomBaseColor(d.id); })
+    .attr('data-country',function(d){ return d.id; })
+	  .attr('d',path)
+    .on('click',function(d,i){
+      console.log('got click on ' + d.properties.name);
+    });
+
   function updateMap(){
     //for use with random cities
     //hexpoints = hexbin(_.map(hexfeatures, function(x){ return projection([x.geometry.coordinates[0], x.geometry.coordinates[1]]); } ));
@@ -263,25 +258,51 @@ d3.json('geo.json', function(error, geo){
     updateMap();
 
   },200);
-  setInterval(function(){
-    if (shootNukes) {
-      // select a random place from places and blip it
-      var victimindex = Math.floor(places.features.length*Math.random());
-      // if you dont want a city to be nuked twice, uncomment
-      //var victimcity = places.features.splice(victimindex,1)[0];
-      var victimcity = places.features[victimindex];
-      var agressorcity = places.features[Math.floor(places.features.length*Math.random())];
-      var attack = {
-        victim: victimcity,
-        agressor: agressorcity,
-      };
-      attacks.push(attack);
-      renderNukes();
-      //remove the city from the list once its rendered
-      attacks.splice(attacks.indexOf(attack),1);
-    }
-  },5000);
 
+  setTimeout(function(){
+    //once we have rendered...
+    // start subscribing to events after 2 seconds
+    subscribe();
+
+    // try and zoom in on our current location
+    if (navigator.geolocation){
+      setStatus('Acquiring geo lock');
+      navigator.geolocation.getCurrentPosition(function(e){
+        setStatus('Fix acquired');
+        geoLocation = e;
+        console.log('geo fix:',e);
+        zoomCurrentLocation(geoLocation);
+        clearStatus();
+      }, function(err){
+        setStatus('Error getting geo lock','error');
+        clearStatus();
+      });
+    } else {
+    }
+
+    // either render nukes, or camera jumping around
+    setInterval(function(){
+      if (shootNukes) {
+        // select a random place from places and blip it
+        var victimindex = Math.floor(places.features.length*Math.random());
+        // if you dont want a city to be nuked twice, uncomment
+        //var victimcity = places.features.splice(victimindex,1)[0];
+        var victimcity = places.features[victimindex];
+        var agressorcity = places.features[Math.floor(places.features.length*Math.random())];
+        var attack = {
+          victim: victimcity,
+          agressor: agressorcity,
+        };
+        attacks.push(attack);
+        renderNukes();
+        //remove the city from the list once its rendered
+        attacks.splice(attacks.indexOf(attack),1);
+      }
+      if (zoomcities) {
+        zoomRandomCity();
+      }
+    },5000);
+  },2000);
 
 
 
