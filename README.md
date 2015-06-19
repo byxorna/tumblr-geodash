@@ -12,21 +12,23 @@ There are 3 (or 4) parts to this:
 
 ## Run via Docker
 
+A docker image is available. It includes the binaries to run the server, firehose-agent, and regular agent.
+
 ### Run a redis instance
 
 ```docker run -d --name redis -p 6379:6379 redis```
 
 ### Run Server
 
-```docker run -d --name tumblr-geo-map-server -p 8080:8080 byxorna/firehose -redis-host=<REDISHOST>:6379```
+```docker run -d --name tumblr-geo-map-server -p 8080:8080 byxorna/tumblr-geodash server -redis-host=<REDISHOST>:6379```
 
 ### Run the firehose consumer
 
-```docker run -d --name tumblr-geo-map-firehose byxorna/tumblr-geo-map -redis-host=<REDISHOST>:6379 -host=<tumblrfirehoseendpoint:port> -username=user -password=pw -stream=clientid```
+```docker run -d --name tumblr-geo-map-firehose byxorna/tumblr-geodash firehose-agent -redis-host=<REDISHOST>:6379 -host=<tumblrfirehoseendpoint:port> -username=user -password=pw -stream=clientid```
 
 Go to `:8080` and click the Posts button.
 
-## Build and run the thing
+## Build and run the thing oldschool style
 
 To build the agent, you will need `libgeoip` (https://github.com/maxmind/geoip-api-c). On OSX: `sudo port install libgeoip`. You will also need the `GeoIPCity.dat` database (pass to `-geoip-db`)
 
