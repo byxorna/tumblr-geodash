@@ -66,7 +66,9 @@ func updatePosition(ts int64, client http.Client) (*http.Response, error) {
 		log.Printf("Unable to update position to %d: %s", ts, err)
 		return nil, err
 	}
-	log.Printf("Updated position to %d: %s", ts, resp.Status)
+	if debug {
+		log.Printf("Updated position to %d: %s", ts, resp.Status)
+	}
 	return resp, nil
 }
 
