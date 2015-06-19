@@ -1,10 +1,32 @@
 ## WTF IS THIS
 
-Golang server that serves up a map of realtime events, broken out by geo. `/events/*` generates a stream a events that are published into redis (pubsub) and streamed into the client to render on the map.
+There are 3 (or 4) parts to this:
 
-Theres also a client that will break apart haproxy logs and do geoip lookups on the IP, and publish the events into redis.
+1. `server/`: Golang server that serves up a map of realtime events, broken out by geo. `/` serves the dashboard, and `/events/*` is a EventStream that comes from a Tumblr firehose consumer (or an haproxy log tailer) that is published into redis' pubsub mechanism, and consumed by each http server to stream to clients.
 
-## Run the thing
+2. `firehose-agent/`: Tumblr Firehose agent that pulls out Post info and pushes it into redis. Easy peasy.
+
+3. `agent/`: Ghetto haproxy log replayer or tailer that performs the geoip lookups for each remote IP and generates a event which is PUBLISHed into redis.
+
+4. Redis, to support PUBSUB from firehose to servers, and eventually stream out to the clients.
+
+## Run via Docker
+
+### Run a redis instance
+
+```docker run -d --name redis -p 6379:6379 redis```
+
+### Run Server
+
+```docker run -d --name tumblr-geo-map-server -p 8080:8080 byxorna/firehose -redis-host=<REDISHOST>:6379```
+
+### Run the firehose consumer
+
+```docker run -d --name tumblr-geo-map-firehose byxorna/tumblr-geo-map -redis-host=<REDISHOST>:6379 -host=<tumblrfirehoseendpoint:port> -username=user -password=pw -stream=clientid```
+
+Go to `:8080` and click the Posts button.
+
+## Build and run the thing
 
 To build the agent, you will need `libgeoip` (https://github.com/maxmind/geoip-api-c). On OSX: `sudo port install libgeoip`. You will also need the `GeoIPCity.dat` database (pass to `-geoip-db`)
 
@@ -21,7 +43,7 @@ docker run -d --name redis -p 6379:6379 redis
 
 Run the webserver
 ```
-./server/server -redis-host=192.168.59.103:6379 -listen=:8080
+cd public && ../server/server -redis-host=192.168.59.103:6379 -listen=:8080
 ```
 
 Open up localhost:8080

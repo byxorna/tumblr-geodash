@@ -1,0 +1,6 @@
+.git
+tmp/
+server/server
+agent/agent
+firehose-agent/firehose-agent
+geoip/

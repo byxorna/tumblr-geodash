@@ -1,0 +1,9 @@
+FROM golang
+MAINTAINER Gabe Conradi <gummybearx@gmail.com>
+ADD . /go/src/github.com/byxorna/radiator-porn
+RUN apt-get update && apt-get install -y libgeoip-dev pkg-config && rm -rf /var/lib/apt/lists/*
+RUN go get github.com/tools/godep && cd /go/src/github.com/byxorna/radiator-porn && ./install.sh
+ADD ./public/ /srv/www
+WORKDIR /srv/www
+CMD ["server","-listen=:8080"]
+

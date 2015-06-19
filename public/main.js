@@ -115,12 +115,31 @@ function zoomCurrentLocation(geo){
   svg.transition().duration(2000).call(zoomTo(geo, 6).event);
 }
 function zoomTo(geo, scale) {
+  // handle AmundsenScott South Pole Station lat:177.01170117011702 lon:-90
+  // pull in the coord just a bit so we dont try to translate to Infinity
+  if (geo.coords.latitude <= -90){
+    var v  = geo.coords.latitude;
+    console.log("Adjusting ",v,geo.coords.latitude);
+    geo.coords.latitude = geo.coords.latitude + 0.000001;
+  }
+  if (geo.coords.latitude >= 90){
+    var v  = geo.coords.latitude;
+    console.log("Adjusting ",v,geo.coords.latitude);
+    geo.coords.latitude = geo.coords.latitude - 0.000001;
+  }
   // this should be in [long, lat] NOT [lat,long]!!
   // takes output of navigator.geolocation.getCurrentPosition(f(e){});
   var point = projection([geo.coords.longitude,geo.coords.latitude]);
-  return zoom
-      .translate([width / 2 - point[0] * scale, height / 2 - point[1] * scale])
-      .scale(scale);
+  var tr_x = width / 2 - point[0] * scale,
+      tr_y = height / 2 - point[1] * scale;
+  if (isFinite(tr_x) && isFinite(tr_y)){
+    return zoom
+        .translate([tr_x, tr_y])
+        .scale(scale);
+  } else {
+    console.log("Something went wrong zooming to",geo.coords.longitude,geo.coords.latitude,": computed point ",point[0],point[1]);
+    return zoom;
+  }
 }
 
 
@@ -248,7 +267,9 @@ d3.json('geo.json', function(error, geo){
     if (shootNukes) {
       // select a random place from places and blip it
       var victimindex = Math.floor(places.features.length*Math.random());
-      var victimcity = places.features.splice(victimindex,1)[0];
+      // if you dont want a city to be nuked twice, uncomment
+      //var victimcity = places.features.splice(victimindex,1)[0];
+      var victimcity = places.features[victimindex];
       var agressorcity = places.features[Math.floor(places.features.length*Math.random())];
       var attack = {
         victim: victimcity,
