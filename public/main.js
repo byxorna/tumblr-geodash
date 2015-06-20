@@ -8,7 +8,12 @@ function getParameterURL(name, def) {
       // this sucks, but convert to real types
       // this totally wont handle any strings, but... whatever
       // numbers and booleans will work fine
-      x = JSON.parse(v);
+      try {
+        x = JSON.parse(v);
+      } catch (e) {
+        console.log("Unable to parse " + name + " value " + v + ": " + e);
+        x = v;
+      }
     }
     console.log(name,x);
     return x;
@@ -56,7 +61,9 @@ var params = {
   eventexpirationseconds: getParameterURL('eventexpirationseconds',10),  // expire an event from bucket after this delay
   nukecamdelay: 3000, //ms after positioning camera to trigger nuke
   shootnukes: getParameterURL('shootnukes',false),  // run nuke sim
-  jumpcities: getParameterURL('jumpcities',true)    // automatically jump between cities
+  jumpcities: getParameterURL('jumpcities',true),    // automatically jump between cities
+  go: getParameterURL('go',null), // string of lat,lon
+  zoom: getParameterURL('zoom',6) // default zoom level for geolocation fix, and initial focus
 };
 
 var coldcolor = "green", //green
@@ -105,7 +112,7 @@ function changeviewport(){
   // translates and scales the map in response to zoom/drag inputs
   map.attr('transform','translate(' + d3.event.translate.join(',') + ') scale(' + d3.event.scale + ')');
   //scale the hexmesh stroke width to keep it the same width at all zoom levels
-  map.select('.hexmesh').style('stroke-width', 1/d3.event.scale + "px");
+  //map.select('.hexmesh').style('stroke-width', 1/d3.event.scale + "px");
 }
 
 // generates random points in geo coordinates
@@ -299,21 +306,30 @@ d3.json('geo.json', function(error, geo){
     }
 
     // try and zoom in on our current location
-    if (navigator.geolocation){
+    if (params.go) {
+      // parse go as lat,lon: 41.125447,-73.402501
+      var x = params.go.split(",");
+      var g = {
+        coords: {
+          latitude: x[0],
+          longitude: x[1],
+        }
+      };
+      setStatus('Going to ' + x[0] + ", " + x[1]);
+      zoomToGeo(g, params.zoom);
+      clearStatus();
+    } else if (navigator.geolocation){
       setStatus('Acquiring geo lock');
       navigator.geolocation.getCurrentPosition(function(e){
         setStatus('Fix acquired');
         geoLocation = e;
         console.log('geo fix:',e);
-        zoomToGeo(geoLocation);
+        zoomToGeo(geoLocation, params.zoom);
         clearStatus();
       }, function(err){
         setStatus('Error getting geo lock','error');
         clearStatus();
       });
-    } else {
-    //fIXMEXXX zoom to target location and zoomlevel if present
-    console.log("FIXME go to specified zoomlevel");
     }
 
     // either render nukes, or camera jumping around
