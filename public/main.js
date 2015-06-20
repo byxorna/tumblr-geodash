@@ -59,7 +59,7 @@ var params = {
   hexsize: getParameterURL('hexsize',2), //how large the hexagon bins are
   showposts: getParameterURL('showposts',true),
   eventexpirationseconds: getParameterURL('eventexpirationseconds',10),  // expire an event from bucket after this delay
-  nukecamdelay: 3000, //ms after positioning camera to trigger nuke
+  zoomcamdelay: 3000, //ms after positioning camera to trigger nuke
   shootnukes: getParameterURL('shootnukes',false),  // run nuke sim
   jumpcities: getParameterURL('jumpcities',true),    // automatically jump between cities
   go: getParameterURL('go',null), // string of lat,lon
@@ -209,6 +209,9 @@ function zoomRandomCity(timeout){
       latitude: city.geometry.coordinates[1],
     }
   });
+  setTimeout(function(){
+    drawPing(projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]));
+  },params.zoomcamdelay);
 }
   function renderNukes(){
     var blipsgroupenter = blipsgroup.data(attacks).enter().append('g');
@@ -240,7 +243,7 @@ function zoomRandomCity(timeout){
           .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
           .transition().duration(1000).ease('cubic-in-out').attr('r',10).style('opacity',0).remove();
         blipsgroup.data(attacks).exit().remove();
-      },params.nukecamdelay);
+      },params.zoomcamdelay);
 
     });
   }

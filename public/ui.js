@@ -22,14 +22,14 @@ function drawPing(pixelcoords){
     .append('circle')
       .attr("r", 1e-6/zoom.scale())
       .attr('fill','none')
-      .style("stroke", 'orange')
+      .style("stroke", '#fff')
       .style("stroke-width", 3/zoom.scale() + "px")
       .style("stroke-opacity", 1)
       .attr('transform',"translate("+pixelcoords[0]+","+pixelcoords[1]+")")
     .transition()
       .duration(2000)
       .ease(Math.sqrt)
-      .attr("r", 25/zoom.scale())
+      .attr("r", 35/zoom.scale())
       .style("stroke-opacity", 1e-6)
       .remove();
 }
