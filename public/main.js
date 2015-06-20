@@ -1,16 +1,66 @@
+// extract a query parameter out of the URL, and use default if not present
+function getParameterURL(name, def) {
+    if (def == undefined) { def = null; }
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    var x = def;
+    if (match){
+      var v = decodeURIComponent(match[1].replace(/\+/g, ' '));
+      // this sucks, but convert to real types
+      // this totally wont handle any strings, but... whatever
+      // numbers and booleans will work fine
+      x = JSON.parse(v);
+    }
+    console.log(name,x);
+    return x;
+}
+
+function setParameter(name, val){
+  // update name in our params map
+  params[name] = val;
+
+  // construct the new url params string
+  var key = escape(name);
+  var value = escape(val);
+  var kvp = document.location.search.substr(1).split('&');
+  var newquerystring = '';
+  if (kvp == '') {
+      newquerystring = '?' + key + '=' + value;
+  }
+  else {
+      var i = kvp.length; var x; while (i--) {
+          x = kvp[i].split('=');
+          if (x[0] == key) {
+              x[1] = value;
+              kvp[i] = x.join('=');
+              break;
+          }
+      }
+      if (i < 0) { kvp[kvp.length] = [key, value].join('='); }
+      newquerystring = kvp.join('&');
+  }
+
+  // now use pushstate to populate the url
+  window.history.pushState(params,"", window.location.pathname + "?" + newquerystring);
+}
+
+
 var colorClasses = ['yellow','orange','red','magenta','violet','blue','cyan','green'];
 var colorClassesBase = ['base03','base02','base01'];
-    // how large the hexagon bins are
-var hexsize = 2,
-    // what the upper bucket size for coloration (most red)
-    maxbinsize = 8,
-    // how many seconds before we expire any requests
-    eventExpirationSeconds = 10,
-    coldcolor = "green", //green
+
+/*
+These variables can be parameterized via URL query string
+*/
+var params = {
+  hexsize: getParameterURL('hexsize',2), //how large the hexagon bins are
+  showposts: getParameterURL('showposts',true),
+  eventexpirationseconds: getParameterURL('eventexpirationseconds',10),  // expire an event from bucket after this delay
+  nukecamdelay: 3000, //ms after positioning camera to trigger nuke
+  shootnukes: getParameterURL('shootnukes',false),  // run nuke sim
+  jumpcities: getParameterURL('jumpcities',true)    // automatically jump between cities
+};
+
+var coldcolor = "green", //green
     hotcolor = "red";  //red
-// how to determine hexbin color with interpolation
-var shootNukes = false;
-var zoomcities = true;
 var color = function(i){
   var domain = [1,3,5,10];
   // green, yellow, orange, red, magenta
@@ -26,13 +76,7 @@ var color = d3.scale.linear()
     .range(["#2aa198","#2aa198","#6c71c4","#d44682","#dc322f"])
     .clamp(true);
     //.interpolate(d3.interpolateLab);
-    */
-
-/*
-var color = d3.scale.ordinal()
-    .domain(d3.range(0, maxbinsize))
-    .range(colorbrewer.PuBu[8].reverse());
-    */
+*/
 
 function randomBaseColor(id) {
   return _randomVal(id,colorClassesBase);
@@ -87,7 +131,7 @@ var topo = map.append('g').attr('class','topology');
 var hexfeatures = [];
 //binned hex data, generated when adding features into hexfeatures
 var hexpoints = [];
-var hexbin = d3.hexbin().size([width,height]).radius(hexsize);
+var hexbin = d3.hexbin().size([width,height]).radius(params.hexsize);
 var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
 /* end hex binning */
 
@@ -97,11 +141,14 @@ var projection = d3.geo.mercator().translate([width/2,height/2]);
 var zoom = d3.behavior.zoom().scaleExtent([1,15]).on('zoom',changeviewport);
 var path = d3.geo.path().projection(projection);
 var mode = 'none';
-var geoLocation = null;
+var geolocation = null;
 var places;
 
-function zoomToGeo(geo){
-  svg.transition().duration(2000).call(_zoomTo(geo, 6).event);
+function zoomToGeo(geo, scale){
+  if (scale == undefined || scale == null){
+    scale = 6;
+  }
+  svg.transition().duration(2000).call(_zoomTo(geo, scale).event);
 }
 function _zoomTo(geo, scale) {
   // handle AmundsenScott South Pole Station lat:177.01170117011702 lon:-90
@@ -146,10 +193,7 @@ function zoomRandomCity(timeout){
   });
 }
   function renderNukes(){
-    // var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
-    //d3.select('#parent').selectAll('p').data(data).enter()
     var blipsgroupenter = blipsgroup.data(attacks).enter().append('g');
-    var camPositionDelay = 3000;
     blipsgroupenter.each(function(d){
       setStatus(d.victim.properties.city + ', ' + d.victim.properties.country + 
         " was nuked by " + d.agressor.properties.country,"error");
@@ -178,7 +222,7 @@ function zoomRandomCity(timeout){
           .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
           .transition().duration(1000).ease('cubic-in-out').attr('r',10).style('opacity',0).remove();
         blipsgroup.data(attacks).exit().remove();
-      },camPositionDelay);
+      },params.nukecamdelay);
 
     });
   }
@@ -240,7 +284,7 @@ d3.json('geo.json', function(error, geo){
     //*** update data ***//
    // always prune expired events from hexfeatures
     var currentTime = Date.now();
-    hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-eventExpirationSeconds*1000); });
+    hexfeatures = _.reject(hexfeatures,function(e){ return e.entrytime < (currentTime-params.eventexpirationseconds*1000); });
 
     //*** update the map ***//
     updateMap();
@@ -250,7 +294,9 @@ d3.json('geo.json', function(error, geo){
   setTimeout(function(){
     //once we have rendered...
     // start subscribing to events after 2 seconds
-    subscribe();
+    if (params.showposts) {
+      subscribe();
+    }
 
     // try and zoom in on our current location
     if (navigator.geolocation){
@@ -266,11 +312,13 @@ d3.json('geo.json', function(error, geo){
         clearStatus();
       });
     } else {
+    //fIXMEXXX zoom to target location and zoomlevel if present
+    console.log("FIXME go to specified zoomlevel");
     }
 
     // either render nukes, or camera jumping around
     setInterval(function(){
-      if (shootNukes) {
+      if (params.shootnukes) {
         // select a random place from places and blip it
         var victimindex = Math.floor(places.features.length*Math.random());
         // if you dont want a city to be nuked twice, uncomment
@@ -286,7 +334,7 @@ d3.json('geo.json', function(error, geo){
         //remove the city from the list once its rendered
         attacks.splice(attacks.indexOf(attack),1);
       }
-      if (zoomcities) {
+      if (params.jumpcities) {
         zoomRandomCity();
       }
     },5000);

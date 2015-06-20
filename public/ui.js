@@ -23,14 +23,16 @@ $(function(){
     console.log("Setting mode to " + t.data('mode'));
     mode = t.data('mode');
     // turn off anything that shouldn't be active
-    if (mode !== 'live'){
+    if (mode !== 'showposts'){
       setStatus("Unsubscribing");
+      setParameter('showposts',false);
       unsubscribe();
       clearStatus();
     }
     // turn on whatever should be active
     switch(mode){
-      case "live":
+      case "showposts":
+        setParameter('showposts',true);
         subscribe();
         break;
     }
@@ -43,19 +45,19 @@ $(function(){
         clearStatus('1500');
         break;
       case "jumpcities":
-        setStatus("Turning " + ((zoomcities) ? "off" : "on") + " jumping");
-        zoomcities = !zoomcities;
-        if (zoomcities) {
-          shootNukes = false;
+        setStatus("Turning " + ((params.jumpcities) ? "off" : "on") + " jumping");
+        setParameter('jumpcities',!params.jumpcities);
+        if (params.jumpcities) {
+          setParameter('shootnukes',false);
         }
         clearStatus();
         break;
       case "nukes":
         console.log($(e.target).data('action'));
-        shootNukes = !shootNukes
-        if (shootNukes){
+        setParameter('shootnukes',!params.shootnukes);
+        if (params.shootnukes){
           setStatus("Shall we play a game?","error");
-          zoomcities = false;
+          setParameter('jumpcities',false);
         } else {
           setStatus("Wouldn't you prefer a nice game of chess?");
           clearStatus();
