@@ -41,7 +41,9 @@ $(function(){
     switch($(e.target).data('action')) {
       case "home":
         if (geolocation){
+          //TODO this doesnt work if we never got getlocation on load
           setStatus('Home, James!');
+          setParameter('go',null);
           zoomToGeo(geolocation);
         } else {
           setStatus('Geolocation not enabled!','error');
@@ -72,6 +74,29 @@ $(function(){
     $(this).animate({opacity: 1});
   }).on('mouseleave',function(e){
     $(this).stop().delay(2000).animate({opacity: .15});
+  });
+
+  map.on('click',function(e){
+    var pixelcoords = d3.mouse(this);
+    var lonlat = projection.invert(pixelcoords);
+    console.log("click at "+lonlat[1]+","+lonlat[0]);
+    setParameter('go',lonlat[1]+","+lonlat[0]);
+    blipsgroup.data([pixelcoords])
+      .enter()
+      .append('circle')
+        .attr("r", 1e-6/zoom.scale())
+        .attr('fill','none')
+        .style("stroke", 'orange')
+        .style("stroke-width", 3/zoom.scale() + "px")
+        .style("stroke-opacity", 1)
+        .attr('transform',"translate("+pixelcoords[0]+","+pixelcoords[1]+")")
+      .transition()
+        .duration(2000)
+        .ease(Math.sqrt)
+        .attr("r", 25/zoom.scale())
+        .style("stroke-opacity", 1e-6)
+        .remove();
+
   });
 
 });

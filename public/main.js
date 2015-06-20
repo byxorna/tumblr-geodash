@@ -127,10 +127,20 @@ var width = window.innerWidth,
     height = window.innerHeight;
 
 var svg = d3.select('body').append('svg')
+  .attr('viewBox',"0 0 " + width + " " + height);
+  /*
 	.attr('width',width)
 	.attr('height',height);
+  */
 var attacks = [];
 var map = svg.append('g').attr('class','map');
+// create a backdrop in the map so we can capture clicks anywhere in the map
+//TODO FIXME this rectangle isnt the full size of the viewBox
+// so events from clicks dont get captured everywhere :(
+map.insert('rect').attr('class','backdrop')
+  .attr('opacity','0')
+  .attr('width',width)
+  .attr('height',height);
 var topo = map.append('g').attr('class','topology');
 
 /* for hex binning */
@@ -282,8 +292,6 @@ d3.json('geo.json', function(error, geo){
     hexmap.transition().duration(200)
         .style('opacity',1)
         .style('fill',function(d){ return color(d.length);});
-
-
   }
 
   updateMap();
@@ -319,14 +327,20 @@ d3.json('geo.json', function(error, geo){
       setStatus('Going to ' + x[0] + ", " + x[1]);
       zoomToGeo(g, params.zoom);
       clearStatus();
-    } else if (navigator.geolocation){
-      setStatus('Acquiring geo lock');
+    }
+    if (navigator.geolocation){
+      if (!params.go){
+        setStatus('Acquiring geo lock');
+      }
       navigator.geolocation.getCurrentPosition(function(e){
-        setStatus('Fix acquired');
         geolocation = e;
         console.log('geo fix:',e);
-        zoomToGeo(geolocation, params.zoom);
-        clearStatus();
+        if (!params.go){
+          setStatus('Fix acquired');
+          // dont zoom home if params.go is set
+          zoomToGeo(geolocation, params.zoom);
+          clearStatus();
+        }
       }, function(err){
         setStatus('Error getting geo lock','error');
         clearStatus();
