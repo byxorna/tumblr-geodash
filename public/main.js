@@ -323,9 +323,9 @@ d3.json('geo.json', function(error, geo){
       setStatus('Acquiring geo lock');
       navigator.geolocation.getCurrentPosition(function(e){
         setStatus('Fix acquired');
-        geoLocation = e;
+        geolocation = e;
         console.log('geo fix:',e);
-        zoomToGeo(geoLocation, params.zoom);
+        zoomToGeo(geolocation, params.zoom);
         clearStatus();
       }, function(err){
         setStatus('Error getting geo lock','error');
