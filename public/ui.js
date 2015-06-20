@@ -40,8 +40,12 @@ $(function(){
   $('.action-toolbar button.action').on('click',function(e){
     switch($(e.target).data('action')) {
       case "home":
-        setStatus('Home, James!');
-        zoomToGeo(geoLocation);
+        if (geolocation){
+          setStatus('Home, James!');
+          zoomToGeo(geolocation);
+        } else {
+          setStatus('Geolocation not enabled!','error');
+        }
         clearStatus('1500');
         break;
       case "jumpcities":
@@ -69,26 +73,5 @@ $(function(){
   }).on('mouseleave',function(e){
     $(this).stop().delay(2000).animate({opacity: .15});
   });
-
-  // lets try and get current position to center the map around
-  /*
-  if (navigator.geolocation){
-    setStatus('Acquiring geo lock');
-    navigator.geolocation.getCurrentPosition(function(e){
-      setStatus('Fix acquired');
-      geoLocation = e;
-      //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
-      console.log('geo fix:',e);
-      zoomToGeo(geoLocation);
-      clearStatus();
-    }, function(err){
-      setStatus('Error getting geo lock','error');
-      clearStatus();
-    });
-  } else {
-    setStatus('Geo lock refused','warning');
-    clearStatus();
-  }
-  */
 
 });
