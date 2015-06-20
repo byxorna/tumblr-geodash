@@ -155,6 +155,7 @@ function zoomToGeo(geo, scale){
   if (scale == undefined || scale == null){
     scale = 6;
   }
+  svg.interrupt().transition(); //interrupt any inflight and scheduled animations
   svg.transition().duration(2000).call(_zoomTo(geo, scale).event);
 }
 function _zoomTo(geo, scale) {
