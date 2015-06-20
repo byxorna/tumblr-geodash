@@ -89,18 +89,6 @@ var hexfeatures = [];
 var hexpoints = [];
 var hexbin = d3.hexbin().size([width,height]).radius(hexsize);
 var hexmap = map.append('g').attr('class','hexmap').selectAll('.hex');
-/*
-//not necessary
-svg.append('clipPath')
-    .attr('id','clip')
-  .append('rect')
-    .attr('class','mesh')
-    .attr('width',width)
-    .attr('height',height);
-// create clippath
-map.append('g').attr('clip-path','url(#clip)');
-*/
-
 /* end hex binning */
 
 var blipsgroup = map.append('g').attr('class','blips').selectAll('.blips');
@@ -112,10 +100,10 @@ var mode = 'none';
 var geoLocation = null;
 var places;
 
-function zoomCurrentLocation(geo){
-  svg.transition().duration(2000).call(zoomTo(geo, 6).event);
+function zoomToGeo(geo){
+  svg.transition().duration(2000).call(_zoomTo(geo, 6).event);
 }
-function zoomTo(geo, scale) {
+function _zoomTo(geo, scale) {
   // handle AmundsenScott South Pole Station lat:177.01170117011702 lon:-90
   // pull in the coord just a bit so we dont try to translate to Infinity
   if (geo.coords.latitude <= -90){
@@ -150,7 +138,7 @@ function zoomRandomCity(timeout){
   var city = places.features[Math.floor(places.features.length*Math.random())];
   setStatus(city.properties.city + ", " + city.properties.country);
   clearStatus(timeout);
-  zoomCurrentLocation({
+  zoomToGeo({
     coords: {
       longitude: city.geometry.coordinates[0],
       latitude: city.geometry.coordinates[1],
@@ -166,7 +154,7 @@ function zoomRandomCity(timeout){
       setStatus(d.victim.properties.city + ', ' + d.victim.properties.country + 
         " was nuked by " + d.agressor.properties.country,"error");
       clearStatus(10000);
-      zoomCurrentLocation({
+      zoomToGeo({
         coords: {
           longitude: d.victim.geometry.coordinates[0],
           latitude: d.victim.geometry.coordinates[1],
@@ -271,7 +259,7 @@ d3.json('geo.json', function(error, geo){
         setStatus('Fix acquired');
         geoLocation = e;
         console.log('geo fix:',e);
-        zoomCurrentLocation(geoLocation);
+        zoomToGeo(geoLocation);
         clearStatus();
       }, function(err){
         setStatus('Error getting geo lock','error');

@@ -39,7 +39,7 @@ $(function(){
     switch($(e.target).data('action')) {
       case "home":
         setStatus('Home, James!');
-        zoomCurrentLocation(geoLocation);
+        zoomToGeo(geoLocation);
         clearStatus('1500');
         break;
       case "jumpcities":
@@ -77,7 +77,7 @@ $(function(){
       geoLocation = e;
       //var geo = {lon: e.coords.longitude, lat: e.coords.latitude};
       console.log('geo fix:',e);
-      zoomCurrentLocation(geoLocation);
+      zoomToGeo(geoLocation);
       clearStatus();
     }, function(err){
       setStatus('Error getting geo lock','error');
