@@ -16,6 +16,24 @@ function setStatus(m,c){
   $('span#status').text(m).removeClass().addClass(c);
 }
 
+function drawPing(pixelcoords){
+  blipsgroup.data([pixelcoords])
+    .enter()
+    .append('circle')
+      .attr("r", 1e-6/zoom.scale())
+      .attr('fill','none')
+      .style("stroke", 'orange')
+      .style("stroke-width", 3/zoom.scale() + "px")
+      .style("stroke-opacity", 1)
+      .attr('transform',"translate("+pixelcoords[0]+","+pixelcoords[1]+")")
+    .transition()
+      .duration(2000)
+      .ease(Math.sqrt)
+      .attr("r", 25/zoom.scale())
+      .style("stroke-opacity", 1e-6)
+      .remove();
+}
+
 
 $(function(){
   $('.action-toolbar button.mode').on('click',function(e){
@@ -81,22 +99,7 @@ $(function(){
     var lonlat = projection.invert(pixelcoords);
     console.log("click at "+lonlat[1]+","+lonlat[0]);
     setParameter('go',lonlat[1]+","+lonlat[0]);
-    blipsgroup.data([pixelcoords])
-      .enter()
-      .append('circle')
-        .attr("r", 1e-6/zoom.scale())
-        .attr('fill','none')
-        .style("stroke", 'orange')
-        .style("stroke-width", 3/zoom.scale() + "px")
-        .style("stroke-opacity", 1)
-        .attr('transform',"translate("+pixelcoords[0]+","+pixelcoords[1]+")")
-      .transition()
-        .duration(2000)
-        .ease(Math.sqrt)
-        .attr("r", 25/zoom.scale())
-        .style("stroke-opacity", 1e-6)
-        .remove();
-
+    drawPing(pixelcoords);
   });
 
 });
