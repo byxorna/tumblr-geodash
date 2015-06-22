@@ -29,7 +29,7 @@ function setParameter(name, val){
   var kvp = document.location.search.substr(1).split('&');
   var newquerystring = '';
   if (kvp == '') {
-      newquerystring = '?' + key + '=' + value;
+      newquerystring = key + '=' + value;
   }
   else {
       var i = kvp.length; var x; while (i--) {
