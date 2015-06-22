@@ -105,7 +105,6 @@ godep save ./agent ./server
 
 * Need to test throughput of redis pubsub
 * How fast is the geoip lookup? Should it be in a goroutine?
-* on click, set `go=` to coordinates
-* use `params.zoom` for city jumping
-* highlight each city and do a ping when jumping
+* set params.zoom whenever you zoom in
 * have circle show up on hover for cities?
+* add mode to show each post as a ping instead of bucketing them into hexbins
