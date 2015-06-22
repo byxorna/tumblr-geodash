@@ -210,7 +210,8 @@ function zoomRandomCity(timeout){
     }
   });
   setTimeout(function(){
-    drawPing(projection([city.geometry.coordinates[0],city.geometry.coordinates[1]]));
+    // lat, lon, color
+    drawPing(city.geometry.coordinates[1],city.geometry.coordinates[0],'#fff');
   },params.zoomcamdelay);
 }
   function renderNukes(){

@@ -16,16 +16,25 @@ function setStatus(m,c){
   $('span#status').text(m).removeClass().addClass(c);
 }
 
-function drawPing(pixelcoords){
-  blipsgroup.data([pixelcoords])
+function drawPing(lat, lon, color){
+  if (color == undefined || color == null) {
+    color = "#fff";
+  }
+  var pixelcoords = projection([lon,lat]);
+  var d = {
+    x: pixelcoords[0],
+    y: pixelcoords[1],
+    color: color,
+  };
+  blipsgroup.data([d])
     .enter()
     .append('circle')
       .attr("r", 1e-6/zoom.scale())
       .attr('fill','none')
-      .style("stroke", '#fff')
+      .style("stroke", function(d){ return d.color; })
       .style("stroke-width", 3/zoom.scale() + "px")
       .style("stroke-opacity", 1)
-      .attr('transform',"translate("+pixelcoords[0]+","+pixelcoords[1]+")")
+      .attr('transform',"translate("+d.x+","+d.y+")")
     .transition()
       .duration(2000)
       .ease(Math.sqrt)
