@@ -13,13 +13,7 @@ function subscribe(){
   source.onerror = function(e){
     console.log('eventsource error',e);
   };
-  source.addEventListener('firehose',function(e){
-    //console.log('geo message',e);
-    var m = JSON.parse(e.data);
-    // stamp each event with when we received it, so we can expire them
-    m.entrytime = Date.now();
-    hexfeatures.push(m);
-  });
+  source.addEventListener('firehose',handleEventStreamData);
 }
 function unsubscribe(){
   if (source) {

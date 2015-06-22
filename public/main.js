@@ -62,6 +62,7 @@ var params = {
   zoomcamdelay: 3000, //ms after positioning camera to trigger nuke
   shootnukes: getParameterURL('shootnukes',false),  // run nuke sim
   jumpcities: getParameterURL('jumpcities',true),    // automatically jump between cities
+  pingstream: getParameterURL('pingstream',false),  // show a stream of firehose events instead of hexbucketing
   go: getParameterURL('go',null), // string of lat,lon
   zoom: getParameterURL('zoom',6) // default zoom level for geolocation fix, and initial focus
 };
@@ -214,40 +215,56 @@ function zoomRandomCity(timeout){
     drawPing(city.geometry.coordinates[1],city.geometry.coordinates[0],'#fff');
   },params.zoomcamdelay);
 }
-  function renderNukes(){
-    var blipsgroupenter = blipsgroup.data(attacks).enter().append('g');
-    blipsgroupenter.each(function(d){
-      setStatus(d.victim.properties.city + ', ' + d.victim.properties.country + 
-        " was nuked by " + d.agressor.properties.country,"error");
-      clearStatus(10000);
-      zoomToGeo({
-        coords: {
-          longitude: d.victim.geometry.coordinates[0],
-          latitude: d.victim.geometry.coordinates[1],
-        }
-      });
-      setTimeout(function(){
-        blipsgroupenter.append('circle')
-          .attr('class','shockwave')
-          .attr('r',2)
-          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
-          .transition()
-            .duration(1500).ease('cubic-in-out').attr('r',25).style('opacity',0).remove();
-        blipsgroupenter.append('circle')
-          .attr('r',5)
-          .attr('class','blip')
-          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
-          .transition().duration(700).ease('cubic-in-out').attr('r',2).style('opacity',0).remove();
-        blipsgroupenter.append('circle')
-          .attr('r',2)
-          .attr('class','orange')
-          .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
-          .transition().duration(1000).ease('cubic-in-out').attr('r',10).style('opacity',0).remove();
-        blipsgroup.data(attacks).exit().remove();
-      },params.zoomcamdelay);
 
-    });
+// callback that should be called whenever we receive new data from the firehose
+function handleEventStreamData(e){
+  // this is the raw eventstream event, so first lets parse it
+  var m = JSON.parse(e.data);
+  m.entrytime = Date.now();
+  // push the message into hexfeatures, so we can bucket it next time the timer fires, if we are in hexmode
+  hexfeatures.push(m);
+  // if we are should display the event with a ping, do it now
+  if (params.pingstream){
+    drawPing(m.lat,m.lon,'red',1000);
   }
+
+
+}
+
+function renderNukes(){
+  var blipsgroupenter = blipsgroup.data(attacks).enter().append('g');
+  blipsgroupenter.each(function(d){
+    setStatus(d.victim.properties.city + ', ' + d.victim.properties.country + 
+      " was nuked by " + d.agressor.properties.country,"error");
+    clearStatus(10000);
+    zoomToGeo({
+      coords: {
+        longitude: d.victim.geometry.coordinates[0],
+        latitude: d.victim.geometry.coordinates[1],
+      }
+    });
+    setTimeout(function(){
+      blipsgroupenter.append('circle')
+        .attr('class','shockwave')
+        .attr('r',2)
+        .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+        .transition()
+          .duration(1500).ease('cubic-in-out').attr('r',25).style('opacity',0).remove();
+      blipsgroupenter.append('circle')
+        .attr('r',5)
+        .attr('class','blip')
+        .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+        .transition().duration(700).ease('cubic-in-out').attr('r',2).style('opacity',0).remove();
+      blipsgroupenter.append('circle')
+        .attr('r',2)
+        .attr('class','orange')
+        .attr('transform', function(d){ return "translate("+projection([d.victim.geometry.coordinates[0],d.victim.geometry.coordinates[1]])+")"; })
+        .transition().duration(1000).ease('cubic-in-out').attr('r',10).style('opacity',0).remove();
+      blipsgroup.data(attacks).exit().remove();
+    },params.zoomcamdelay);
+
+  });
+}
 
 
 d3.json('geo.json', function(error, geo){

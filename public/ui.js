@@ -16,9 +16,12 @@ function setStatus(m,c){
   $('span#status').text(m).removeClass().addClass(c);
 }
 
-function drawPing(lat, lon, color){
+function drawPing(lat, lon, color, speed){
   if (color == undefined || color == null) {
     color = "#fff";
+  }
+  if (speed == undefined || speed == null){
+    speed = 2000;
   }
   var pixelcoords = projection([lon,lat]);
   var d = {
@@ -31,12 +34,12 @@ function drawPing(lat, lon, color){
     .append('circle')
       .attr("r", 1e-6/zoom.scale())
       .attr('fill','none')
-      .style("stroke", function(d){ return d.color; })
+      .style("stroke", color)
       .style("stroke-width", 3/zoom.scale() + "px")
       .style("stroke-opacity", 1)
       .attr('transform',"translate("+d.x+","+d.y+")")
     .transition()
-      .duration(2000)
+      .duration(speed)
       .ease(Math.sqrt)
       .attr("r", 35/zoom.scale())
       .style("stroke-opacity", 1e-6)
@@ -76,6 +79,11 @@ $(function(){
           setStatus('Geolocation not enabled!','error');
         }
         clearStatus('1500');
+        break;
+      case "pingstream":
+        setStatus("Turning " + ((params.pingstream) ? "off" : "on") + " displaying individual events");
+        setParameter('pingstream',!params.pingstream);
+        clearStatus();
         break;
       case "jumpcities":
         setStatus("Turning " + ((params.jumpcities) ? "off" : "on") + " jumping");
