@@ -106,21 +106,23 @@ func main() {
 		req.Header.Set("Accept-Encoding", "gzip")
 		req.SetBasicAuth(user, pass)
 
-		tschan := make(chan int64)
-		go func() {
-			i := 0
-			checkinThreshold := 100
-			for {
-				ts := <-tschan
-				i = i + 1
-				if i >= checkinThreshold {
-					// every checkinThreshold messages lets update position in the firehose
-					updatePosition(ts, *client)
-					i = 0
-				}
+		/*
+			tschan := make(chan int64)
+			go func() {
+				i := 0
+				checkinThreshold := 100
+				for {
+					ts := <-tschan
+					i = i + 1
+					if i >= checkinThreshold {
+						// every checkinThreshold messages lets update position in the firehose
+						updatePosition(ts, *client)
+						i = 0
+					}
 
-			}
-		}()
+				}
+			}()
+		*/
 
 		resp, err := client.Do(req)
 		gz, err := gzip.NewReader(resp.Body)
@@ -175,7 +177,7 @@ func main() {
 					log.Printf("%s", err)
 				}
 				rclient.Publish(channel, string(j[:]))
-				tschan <- m.Timestamp
+				//tschan <- m.Timestamp
 				if debug {
 					log.Printf("PUBLISH %s %s", channel, w)
 				}
