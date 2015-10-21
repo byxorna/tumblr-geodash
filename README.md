@@ -1,5 +1,7 @@
 ## WTF IS THIS
 
+![screenshot1](https://raw.githubusercontent.com/byxorna/tumblr-geodash/master/screenshots/Screen%20Shot%202015-10-21%20at%2010.08.58%20AM.png)
+
 There are 3 (or 4) parts to this:
 
 1. `server/`: Golang server that serves up a map of realtime events, broken out by geo. `/` serves the dashboard, and `/events/*` is a EventStream that comes from a Tumblr firehose consumer (or an haproxy log tailer) that is published into redis' pubsub mechanism, and consumed by each http server to stream to clients.
@@ -100,6 +102,11 @@ prune: retained 2002 / 2006 arcs (100%)
 ```
 godep save ./agent ./server
 ```
+
+## Screenies
+
+![screenshot2](https://raw.githubusercontent.com/byxorna/tumblr-geodash/master/screenshots/Screen%20Shot%202015-10-21%20at%2010.09.34%20AM.png)
+![screenshot3](https://raw.githubusercontent.com/byxorna/tumblr-geodash/master/screenshots/Screen%20Shot%202015-10-21%20at%2010.10.35%20AM.png)
 
 ## TODO
 
